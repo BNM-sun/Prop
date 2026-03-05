@@ -375,13 +375,13 @@
 
   // ── If already logged in, go to dashboard ─────────────────────────────
   sb.auth.getSession().then(({ data }) => {
-    if (data.session) window.location.href = 'index.html';
+    if (data.session) window.location.href = 'dashboard.html';
   });
 
   // ── Handle OAuth redirect ─────────────────────────────────────────────
   sb.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
-      window.location.href = 'index.html';
+      window.location.href = 'dashboard.html';
     }
   });
 
@@ -451,14 +451,14 @@
     setLoading('login-btn', false);
 
     if (error) return showMsg('login-msg', error.message, 'error');
-    window.location.href = 'index.html';
+    window.location.href = 'dashboard.html';
   }
 
   // ── Google ────────────────────────────────────────────────────────────
   async function handleGoogle() {
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/index.html' }
+      options: { redirectTo: window.location.origin + '/dashboard.html' }
     });
     if (error) showMsg('login-msg', error.message, 'error');
   }
