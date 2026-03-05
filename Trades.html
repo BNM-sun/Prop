@@ -108,19 +108,21 @@
     'https://enszttdunhtchyufkwbe.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
   );
-  // Wait for Supabase to process OAuth tokens in URL before checking session
+ const _hash = window.location.hash;
+const _isOAuthRedirect = _hash && (_hash.includes('access_token') || _hash.includes('error_description'));
+
+if (_isOAuthRedirect) {
   _sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-      window.location.href = 'auth.html';
-    }
-    if (session) {
+    if (event === 'SIGNED_IN' && session) {
       const emailEl = document.getElementById('nav-user-email');
       if (emailEl) emailEl.textContent = session.user.email;
     }
+    if (event === 'SIGNED_OUT') {
+      window.location.href = 'auth.html';
+    }
   });
-
-  // Also check session on load (handles direct visits)
-  setTimeout(async () => {
+} else {
+  (async () => {
     const { data } = await _sb.auth.getSession();
     if (!data.session) {
       window.location.href = 'auth.html';
@@ -128,7 +130,14 @@
       const emailEl = document.getElementById('nav-user-email');
       if (emailEl) emailEl.textContent = data.session.user.email;
     }
-  }, 500);
+  })();
+
+  _sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      window.location.href = 'auth.html';
+    }
+  });
+}
 </script>
 
 
