@@ -108,16 +108,27 @@
     'https://enszttdunhtchyufkwbe.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
   );
-  (async () => {
+  // Wait for Supabase to process OAuth tokens in URL before checking session
+  _sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      window.location.href = 'auth.html';
+    }
+    if (session) {
+      const emailEl = document.getElementById('nav-user-email');
+      if (emailEl) emailEl.textContent = session.user.email;
+    }
+  });
+
+  // Also check session on load (handles direct visits)
+  setTimeout(async () => {
     const { data } = await _sb.auth.getSession();
     if (!data.session) {
       window.location.href = 'auth.html';
     } else {
-      // Show user email in nav
       const emailEl = document.getElementById('nav-user-email');
       if (emailEl) emailEl.textContent = data.session.user.email;
     }
-  })();
+  }, 500);
 </script>
 
 
