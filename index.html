@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prop Firm Risk Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Prop Firm Risk Dashboard</h1>
+  <nav>
+    <a href="index.html" class="active">Dashboard</a>
+    <a href="accounts.html">Accounts</a>
+    <a href="trades.html">Trades</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+</header>
+
+<!-- BREACH ALERT -->
+<div id="breachAlert">
+  🚨 DAILY DRAWDOWN LIMIT REACHED — STOP TRADING IMMEDIATELY 🚨
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div id="confirmOverlay">
+  <div id="confirmBox">
+    <p id="confirmMsg">Are you sure?</p>
+    <div class="btn-row">
+      <button id="confirmYes">Yes, proceed</button>
+      <button class="btn-cancel" id="confirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <section class="card">
+    <h2>Account Setup</h2>
+    <form id="accountForm">
+      <label for="accountName">Account Name</label>
+      <input type="text" id="accountName" name="accountName" placeholder="e.g. Apex #1" required>
+      <label for="accountSize">Account Size ($)</label>
+      <input type="number" id="accountSize" name="accountSize" min="1000" step="100" required>
+      <label for="dailyDrawdown">Daily Drawdown (%)</label>
+      <input type="number" id="dailyDrawdown" name="dailyDrawdown" min="1" max="10" step="0.1" required>
+      <label for="maxTrailingDrawdown">Max Trailing Drawdown (%)</label>
+      <input type="number" id="maxTrailingDrawdown" name="maxTrailingDrawdown" min="5" max="20" step="0.1" required>
+      <label for="profitTarget">Profit Target ($)</label>
+      <input type="number" id="profitTarget" name="profitTarget" min="100" step="100" required>
+      <button type="submit">Add / Update Account</button>
+      <div class="error" id="accountError"></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Risk Calculator</h2>
+    <form id="riskForm">
+      <label for="instrument">Instrument</label>
+      <select id="instrument" name="instrument" required>
+        <option value="">Select...</option>
+        <option value="MNQ">MNQ (Micro Nasdaq, $2/pt)</option>
+        <option value="NQ">NQ (Nasdaq, $20/pt)</option>
+        <option value="ES">ES (S&amp;P, $50/pt)</option>
+        <option value="MES">MES (Micro S&amp;P, $5/pt)</option>
+      </select>
+      <label for="entryPrice">Entry Price</label>
+      <input type="number" id="entryPrice" name="entryPrice" step="0.25" min="0" required>
+      <label for="stopLoss">Stop Loss</label>
+      <input type="number" id="stopLoss" name="stopLoss" step="0.25" min="0" required>
+      <label for="riskPercent">Risk %</label>
+      <input type="number" id="riskPercent" name="riskPercent" step="0.1" min="0.1" max="5" required>
+      <button type="submit">Calculate Risk</button>
+    </form>
+    <div class="output" aria-live="polite">
+      <p>Position Size: <output id="posSize">--</output> contracts</p>
+      <p>Risk Per Trade: <output id="riskDollars">--</output></p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Daily Drawdown Tracker</h2>
+    <p>Account Balance: $<span id="balance">50,000</span></p>
+    <p>Daily Loss Limit: $<span id="dailyLossLimit">2,500</span></p>
+    <p>Loss Today: $<span id="lossToday">0</span></p>
+    <p class="highlight" id="remainingLabel">Remaining Risk: $<span id="remainingRisk">2,500</span></p>
+  </section>
+
+  <section class="card">
+    <h2>Trade Logger</h2>
+    <form id="tradeForm">
+      <label for="tradeInstrument">Instrument</label>
+      <select id="tradeInstrument" name="tradeInstrument" required>
+        <option value="">Select...</option>
+        <option value="MNQ">MNQ</option>
+        <option value="NQ">NQ</option>
+        <option value="ES">ES</option>
+        <option value="MES">MES</option>
+      </select>
+      <label for="direction">Direction</label>
+      <select id="direction" name="direction" required>
+        <option value="long">Long</option>
+        <option value="short">Short</option>
+      </select>
+      <label for="entry">Entry</label>
+      <input type="number" id="entry" name="entry" step="0.25" min="0" required>
+      <label for="exit">Exit</label>
+      <input type="number" id="exit" name="exit" step="0.25" min="0" required>
+      <label for="contracts">Contracts</label>
+      <input type="number" id="contracts" name="contracts" min="1" step="1" required>
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" placeholder="Optional trade notes..."></textarea>
+      <button type="submit">Log Trade</button>
+      <div class="error" id="tradeError"></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Performance Statistics</h2>
+    <ul>
+      <li>Total Trades: <span id="totalTrades">0</span></li>
+      <li>Win Rate: <span id="winRate">0%</span></li>
+      <li>Average R: <span id="avgR">--</span></li>
+      <li>Profit Factor: <span id="profitFactor">--</span></li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Prop Firm Progress</h2>
+    <p>Profit Target: $<span id="target">3,000</span></p>
+    <p>Current Profit: $<span id="currentProfit">0</span></p>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Equity Curve</h2>
+    <canvas id="equityChart" height="200"></canvas>
+  </section>
+
+  <section class="card full-width">
+    <h2>Trade History</h2>
+    <div id="tradeTableWrap">
+      <div class="empty-msg" id="emptyMsg">No trades logged yet.</div>
+      <table id="tradeTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>#</th><th>Instrument</th><th>Direction</th>
+            <th>Entry</th><th>Exit</th><th>Contracts</th>
+            <th>P&amp;L</th><th>Notes</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tradeTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Prop Firm Risk Dashboard &mdash; Journi- Built for funded traders</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

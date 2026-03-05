@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accounts — Prop Firm Risk Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Prop Firm Risk Dashboard</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="accounts.html" class="active">Accounts</a>
+    <a href="trades.html">Trades</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Add New Account -->
+  <section class="card">
+    <h2>Add New Account</h2>
+    <form id="addAccountForm">
+      <label for="accountName">Account Name</label>
+      <input type="text" id="accountName" placeholder="e.g. Apex Challenge #1" required>
+
+      <label for="firm">Prop Firm</label>
+      <select id="firm">
+        <option value="">Select firm...</option>
+        <option value="apex">Apex Trader Funding</option>
+        <option value="topstep">Topstep</option>
+        <option value="ftmo">FTMO</option>
+        <option value="mff">MyFundedFutures</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="accountSize">Account Size ($)</label>
+      <input type="number" id="accountSize" min="1000" step="500" required>
+
+      <label for="dailyDD">Daily Drawdown (%)</label>
+      <input type="number" id="dailyDD" min="1" max="10" step="0.1" required>
+
+      <label for="maxDD">Max Trailing Drawdown (%)</label>
+      <input type="number" id="maxDD" min="5" max="20" step="0.1" required>
+
+      <label for="profitTarget">Profit Target ($)</label>
+      <input type="number" id="profitTarget" min="100" step="100" required>
+
+      <label for="phase">Phase</label>
+      <select id="phase">
+        <option value="challenge">Challenge / Evaluation</option>
+        <option value="funded">Funded</option>
+      </select>
+
+      <button type="submit">Save Account</button>
+      <div class="error" id="formError"></div>
+    </form>
+  </section>
+
+  <!-- Saved Accounts -->
+  <section class="card" style="grid-column: 1 / -1;">
+    <h2>Saved Accounts</h2>
+    <div id="accountsWrap">
+      <div class="empty-msg" id="emptyMsg">No accounts saved yet. Add one using the form.</div>
+      <div id="accountsList"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Prop Firm Risk Dashboard &mdash; Built for funded traders</p>
+</footer>
+
+<script>
+  let accounts = JSON.parse(localStorage.getItem('allAccounts')) || [];
+
+  function saveAccounts() {
+    localStorage.setItem('allAccounts', JSON.stringify(accounts));
+  }
+
+  function renderAccounts() {
+    const list     = document.getElementById('accountsList');
+    const emptyMsg = document.getElementById('emptyMsg');
+    list.innerHTML = '';
+
+    if (accounts.length === 0) {
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    emptyMsg.style.display = 'none';
+
+    accounts.forEach((a, i) => {
+      const card = document.createElement('div');
+      card.className = 'account-entry';
+      card.innerHTML = `
+        <div class="ae-top">
+          <span class="ae-name">${a.name}</span>
+          <span class="ae-firm">${a.firm || 'Custom'}</span>
+          <span class="ae-phase phase-${a.phase}">${a.phase === 'funded' ? 'Funded' : 'Challenge'}</span>
+        </div>
+        <div class="ae-stats">
+          <div><span class="ae-label">Account Size</span><span class="ae-val">$${Number(a.size).toLocaleString()}</span></div>
+          <div><span class="ae-label">Daily DD</span><span class="ae-val">${a.dailyDD}%</span></div>
+          <div><span class="ae-label">Max DD</span><span class="ae-val">${a.maxDD}%</span></div>
+          <div><span class="ae-label">Profit Target</span><span class="ae-val">$${Number(a.profitTarget).toLocaleString()}</span></div>
+        </div>
+        <div class="ae-actions">
+          <button onclick="loadToDashboard(${i})">Load to Dashboard</button>
+          <button class="btn-delete" onclick="deleteAccount(${i})">Delete</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function loadToDashboard(i) {
+    const a = accounts[i];
+    const account = {
+      name: a.name, size: a.size, dailyDD: a.dailyDD,
+      maxTrailingDD: a.maxDD, profitTarget: a.profitTarget,
+      balance: a.size, highWaterMark: a.size, todayLoss: 0
+    };
+    localStorage.setItem('account', JSON.stringify(account));
+    localStorage.setItem('trades', JSON.stringify([]));
+    localStorage.setItem('equityData', JSON.stringify([a.size]));
+    window.location.href = 'index.html';
+  }
+
+  function deleteAccount(i) {
+    if (!confirm('Delete this account?')) return;
+    accounts.splice(i, 1);
+    saveAccounts();
+    renderAccounts();
+  }
+
+  document.getElementById('addAccountForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const account = {
+      name:         document.getElementById('accountName').value,
+      firm:         document.getElementById('firm').value,
+      size:         parseFloat(document.getElementById('accountSize').value),
+      dailyDD:      parseFloat(document.getElementById('dailyDD').value),
+      maxDD:        parseFloat(document.getElementById('maxDD').value),
+      profitTarget: parseFloat(document.getElementById('profitTarget').value),
+      phase:        document.getElementById('phase').value
+    };
+    accounts.push(account);
+    saveAccounts();
+    renderAccounts();
+    e.target.reset();
+  });
+
+  renderAccounts();
+</script>
+
+<style>
+  .account-entry {
+    background: #150024; border: 1px solid purple;
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 14px;
+  }
+  .ae-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .ae-name { font-weight: bold; font-size: 1.05em; color: #e0c8ff; }
+  .ae-firm { color: #9a6abf; font-size: 0.85em; }
+  .ae-phase {
+    font-size: 0.75em; padding: 3px 10px; border-radius: 20px;
+    font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .phase-funded    { background: rgba(100,255,150,0.15); color: #66ffaa; border: 1px solid #66ffaa; }
+  .phase-challenge { background: rgba(200,150,255,0.15); color: #cc99ff; border: 1px solid #cc99ff; }
+  .ae-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .ae-label { display: block; font-size: 0.75em; color: #9a6abf; margin-bottom: 2px; }
+  .ae-val   { font-size: 1em; color: #ff9cff; font-weight: bold; }
+  .ae-actions { display: flex; gap: 10px; }
+  .ae-actions button { flex: 1; padding: 8px; font-size: 0.85em; }
+</style>
+
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Prop Firm Risk Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Prop Firm Risk Dashboard</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="accounts.html">Accounts</a>
+    <a href="trades.html">Trades</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html" class="active">Settings</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Prop Firm Quick Load -->
+  <section class="card full-width">
+    <h2>Prop Firm Rule Presets</h2>
+    <p style="color:#9a6abf; font-size:0.88em; margin-bottom:18px;">
+      Select a firm to auto-fill the known rules for a $50K account. You can adjust after loading.
+    </p>
+    <div class="firm-grid" id="firmGrid"></div>
+  </section>
+
+  <!-- Current Rules Preview -->
+  <section class="card" id="rulePreview" style="display:none;">
+    <h2>Loaded Rules — <span id="previewFirmName"></span></h2>
+    <ul id="ruleList"></ul>
+    <button onclick="applyPreset()" style="margin-top:14px;">Apply to Dashboard</button>
+    <div class="error" id="presetMsg"></div>
+  </section>
+
+  <!-- Preferences -->
+  <section class="card">
+    <h2>Dashboard Preferences</h2>
+    <form id="prefsForm">
+      <label for="defaultRisk">Default Risk % per Trade</label>
+      <input type="number" id="defaultRisk" min="0.1" max="5" step="0.1" value="1">
+
+      <label for="warningThreshold">Drawdown Warning Threshold (%)</label>
+      <input type="number" id="warningThreshold" min="50" max="95" step="5" value="80">
+      <p style="font-size:0.78em; color:#9a6abf; margin-top:-10px; margin-bottom:10px;">
+        Alert colour changes when this % of daily drawdown is used.
+      </p>
+
+      <label for="defaultInstr">Default Instrument</label>
+      <select id="defaultInstr">
+        <option value="MNQ">MNQ</option>
+        <option value="NQ">NQ</option>
+        <option value="ES">ES</option>
+        <option value="MES">MES</option>
+      </select>
+
+      <button type="submit">Save Preferences</button>
+      <div class="error" id="prefsSaved" style="color:#66ffaa;"></div>
+    </form>
+  </section>
+
+  <!-- Danger Zone -->
+  <section class="card">
+    <h2 style="color:#ff6680;">Danger Zone</h2>
+    <p style="color:#9a6abf; font-size:0.88em; margin-bottom:16px;">
+      These actions cannot be undone.
+    </p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn-delete" onclick="clearTrades()">Clear All Trades</button>
+      <button class="btn-delete" onclick="clearAll()">Reset Everything</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Prop Firm Risk Dashboard &mdash; Built for funded traders</p>
+</footer>
+
+<style>
+  .firm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .firm-card {
+    background: #150024; border: 1px solid #4a0080;
+    border-radius: 10px; padding: 16px 18px; cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .firm-card:hover, .firm-card.selected {
+    border-color: #cc66ff;
+    box-shadow: 0 0 12px rgba(160,32,240,0.4);
+  }
+  .firm-card h3 { color: #cc99ff; margin-bottom: 8px; font-size: 0.95em; }
+  .firm-card p  { color: #9a6abf; font-size: 0.78em; line-height: 1.6; margin: 0; }
+  .rule-item { color: #d8b8ff; font-size: 0.88em; }
+  .rule-item span { color: #ff9cff; font-weight: bold; }
+</style>
+
+<script>
+  // ── Prop Firm Presets (50K account) ────────────────────────────────────────
+  const firmPresets = [
+    {
+      id: 'apex',
+      name: 'Apex Trader Funding',
+      size: 50000,
+      dailyDD: 3,        // $1,500 daily loss limit on 50K
+      maxDD: 6,          // $3,000 trailing drawdown
+      profitTarget: 3000,
+      notes: '$1,500 daily loss limit · $3,000 trailing DD · $3,000 profit target · No minimum trading days'
+    },
+    {
+      id: 'topstep',
+      name: 'Topstep',
+      size: 50000,
+      dailyDD: 4,        // $2,000 daily loss limit
+      maxDD: 6,          // $3,000 trailing drawdown
+      profitTarget: 3000,
+      notes: '$2,000 daily loss limit · $3,000 trailing DD · $3,000 profit target · 5 minimum trading days'
+    },
+    {
+      id: 'ftmo',
+      name: 'FTMO',
+      size: 50000,
+      dailyDD: 5,        // 5% daily loss
+      maxDD: 10,         // 10% max loss
+      profitTarget: 5000,
+      notes: '5% daily loss limit · 10% max loss · 10% profit target · 4 minimum trading days'
+    },
+    {
+      id: 'mff',
+      name: 'MyFundedFutures',
+      size: 50000,
+      dailyDD: 3,
+      maxDD: 6,
+      profitTarget: 3000,
+      notes: '$1,500 daily loss limit · $3,000 trailing DD · $3,000 profit target · No time limit'
+    },
+    {
+      id: 'take',
+      name: 'Take Profit Trader',
+      size: 50000,
+      dailyDD: 4,
+      maxDD: 8,
+      profitTarget: 3000,
+      notes: '$2,000 daily loss limit · $4,000 trailing DD · $3,000 profit target'
+    },
+    {
+      id: 'bulenox',
+      name: 'Bulenox',
+      size: 50000,
+      dailyDD: 3,
+      maxDD: 6,
+      profitTarget: 3000,
+      notes: '$1,500 daily loss limit · $3,000 trailing DD · No minimum trading days'
+    }
+  ];
+
+  let selectedPreset = null;
+
+  function renderFirms() {
+    const grid = document.getElementById('firmGrid');
+    grid.innerHTML = '';
+    firmPresets.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'firm-card';
+      card.id = 'firm-' + f.id;
+      card.innerHTML = `<h3>${f.name}</h3><p>${f.notes}</p>`;
+      card.onclick = () => selectFirm(f);
+      grid.appendChild(card);
+    });
+  }
+
+  function selectFirm(f) {
+    selectedPreset = f;
+    document.querySelectorAll('.firm-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('firm-' + f.id).classList.add('selected');
+
+    // Show preview
+    const preview = document.getElementById('rulePreview');
+    preview.style.display = 'block';
+    document.getElementById('previewFirmName').textContent = f.name;
+
+    const list = document.getElementById('ruleList');
+    list.innerHTML = `
+      <li class="rule-item">Account Size: <span>$${f.size.toLocaleString()}</span></li>
+      <li class="rule-item">Daily Drawdown: <span>${f.dailyDD}% ($${(f.size * f.dailyDD / 100).toLocaleString()})</span></li>
+      <li class="rule-item">Max Trailing DD: <span>${f.maxDD}% ($${(f.size * f.maxDD / 100).toLocaleString()})</span></li>
+      <li class="rule-item">Profit Target: <span>$${f.profitTarget.toLocaleString()}</span></li>
+    `;
+  }
+
+  function applyPreset() {
+    if (!selectedPreset) return;
+    const f = selectedPreset;
+    const account = {
+      name: f.name, size: f.size, dailyDD: f.dailyDD,
+      maxTrailingDD: f.maxDD, profitTarget: f.profitTarget,
+      balance: f.size, highWaterMark: f.size, todayLoss: 0
+    };
+    localStorage.setItem('account',    JSON.stringify(account));
+    localStorage.setItem('trades',     JSON.stringify([]));
+    localStorage.setItem('equityData', JSON.stringify([f.size]));
+    document.getElementById('presetMsg').style.color = '#66ffaa';
+    document.getElementById('presetMsg').textContent = '✓ Applied! Redirecting to Dashboard...';
+    setTimeout(() => window.location.href = 'index.html', 1200);
+  }
+
+  // ── Preferences ────────────────────────────────────────────────────────────
+  const prefs = JSON.parse(localStorage.getItem('prefs')) || {
+    defaultRisk: 1, warningThreshold: 80, defaultInstr: 'MNQ'
+  };
+
+  document.getElementById('defaultRisk').value        = prefs.defaultRisk;
+  document.getElementById('warningThreshold').value   = prefs.warningThreshold;
+  document.getElementById('defaultInstr').value       = prefs.defaultInstr;
+
+  document.getElementById('prefsForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const updated = {
+      defaultRisk:        parseFloat(document.getElementById('defaultRisk').value),
+      warningThreshold:   parseFloat(document.getElementById('warningThreshold').value),
+      defaultInstr:       document.getElementById('defaultInstr').value
+    };
+    localStorage.setItem('prefs', JSON.stringify(updated));
+    const msg = document.getElementById('prefsSaved');
+    msg.textContent = '✓ Preferences saved!';
+    setTimeout(() => msg.textContent = '', 2500);
+  });
+
+  // ── Danger Zone ────────────────────────────────────────────────────────────
+  function clearTrades() {
+    if (!confirm('Clear all trades? This cannot be undone.')) return;
+    const account = JSON.parse(localStorage.getItem('account'));
+    if (account) {
+      account.todayLoss = 0;
+      account.balance   = account.size;
+      account.highWaterMark = account.size;
+      localStorage.setItem('account', JSON.stringify(account));
+    }
+    localStorage.setItem('trades',     JSON.stringify([]));
+    localStorage.setItem('equityData', JSON.stringify([account ? account.size : 50000]));
+    alert('All trades cleared.');
+  }
+
+  function clearAll() {
+    if (!confirm('Reset EVERYTHING? All accounts, trades and settings will be wiped.')) return;
+    localStorage.clear();
+    alert('All data reset.');
+    window.location.href = 'index.html';
+  }
+
+  renderFirms();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — Prop Firm Risk Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Prop Firm Risk Dashboard</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="accounts.html">Accounts</a>
+    <a href="trades.html">Trades</a>
+    <a href="analytics.html" class="active">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Key Metrics -->
+  <section class="card">
+    <h2>Profit Factor</h2>
+    <p class="big-stat" id="profitFactor">—</p>
+    <p class="stat-sub">Gross profit / gross loss</p>
+  </section>
+  <section class="card">
+    <h2>Average Win</h2>
+    <p class="big-stat pnl-pos" id="avgWin">—</p>
+    <p class="stat-sub">Per winning trade</p>
+  </section>
+  <section class="card">
+    <h2>Average Loss</h2>
+    <p class="big-stat pnl-neg" id="avgLoss">—</p>
+    <p class="stat-sub">Per losing trade</p>
+  </section>
+  <section class="card">
+    <h2>Avg R:R</h2>
+    <p class="big-stat" id="avgR">—</p>
+    <p class="stat-sub">Reward vs risk ratio</p>
+  </section>
+  <section class="card">
+    <h2>Largest Win</h2>
+    <p class="big-stat pnl-pos" id="largestWin">—</p>
+  </section>
+  <section class="card">
+    <h2>Largest Loss</h2>
+    <p class="big-stat pnl-neg" id="largestLoss">—</p>
+  </section>
+  <section class="card">
+    <h2>Consecutive Wins</h2>
+    <p class="big-stat" id="consWins">—</p>
+    <p class="stat-sub">Best streak</p>
+  </section>
+  <section class="card">
+    <h2>Consecutive Losses</h2>
+    <p class="big-stat pnl-neg" id="consLosses">—</p>
+    <p class="stat-sub">Worst streak</p>
+  </section>
+
+  <!-- Equity Curve -->
+  <section class="card full-width">
+    <h2>Equity Curve</h2>
+    <div style="position:relative; height:260px;">
+      <canvas id="equityChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Win/Loss Pie + Instrument Breakdown -->
+  <section class="card">
+    <h2>Win / Loss Split</h2>
+    <div style="position:relative; height:220px;">
+      <canvas id="winLossChart"></canvas>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>P&amp;L by Instrument</h2>
+    <div style="position:relative; height:220px;">
+      <canvas id="instrChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Long vs Short -->
+  <section class="card">
+    <h2>Long vs Short P&amp;L</h2>
+    <div style="position:relative; height:220px;">
+      <canvas id="dirChart"></canvas>
+    </div>
+  </section>
+
+  <!-- P&L per Trade Bar -->
+  <section class="card full-width">
+    <h2>P&amp;L Per Trade</h2>
+    <div style="position:relative; height:220px;">
+      <canvas id="pnlBarChart"></canvas>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Prop Firm Risk Dashboard &mdash; Built for funded traders</p>
+</footer>
+
+<style>
+  .big-stat  { font-size: 1.8em; font-weight: bold; color: #ff9cff; margin-top: 8px; }
+  .stat-sub  { font-size: 0.78em; color: #9a6abf; margin-top: 4px; }
+</style>
+
+<script>
+  const trades     = JSON.parse(localStorage.getItem('trades'))     || [];
+  const equityData = JSON.parse(localStorage.getItem('equityData')) || [];
+  const account    = JSON.parse(localStorage.getItem('account'))    || { size: 50000 };
+
+  const chartDefaults = {
+    color: '#caa6ff',
+    plugins: { legend: { labels: { color: '#caa6ff' } } },
+    scales: {
+      x: { ticks: { color: '#9a6abf' }, grid: { color: '#1e003a' } },
+      y: { ticks: { color: '#9a6abf' }, grid: { color: '#1e003a' }, beginAtZero: false }
+    }
+  };
+
+  // ── Key Metrics ─────────────────────────────────────────────────────────────
+  if (trades.length > 0) {
+    const wins      = trades.filter(t => t.pnl > 0);
+    const losses    = trades.filter(t => t.pnl < 0);
+    const gProfit   = wins.reduce((s, t) => s + t.pnl, 0);
+    const gLoss     = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+    const avgWin    = wins.length   > 0 ? gProfit / wins.length   : 0;
+    const avgLoss   = losses.length > 0 ? gLoss   / losses.length : 0;
+
+    document.getElementById('profitFactor').textContent = gLoss > 0 ? (gProfit / gLoss).toFixed(2) : '∞';
+    document.getElementById('avgWin').textContent       = '+$' + avgWin.toFixed(2);
+    document.getElementById('avgLoss').textContent      = '-$' + avgLoss.toFixed(2);
+    document.getElementById('avgR').textContent         = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '∞';
+    document.getElementById('largestWin').textContent   = '+$' + Math.max(...trades.map(t => t.pnl)).toFixed(2);
+    document.getElementById('largestLoss').textContent  = '-$' + Math.abs(Math.min(...trades.map(t => t.pnl))).toFixed(2);
+
+    // Streaks
+    let maxWins = 0, maxLosses = 0, curW = 0, curL = 0;
+    trades.forEach(t => {
+      if (t.pnl > 0) { curW++; curL = 0; maxWins   = Math.max(maxWins,   curW); }
+      else            { curL++; curW = 0; maxLosses = Math.max(maxLosses, curL); }
+    });
+    document.getElementById('consWins').textContent   = maxWins;
+    document.getElementById('consLosses').textContent = maxLosses;
+  }
+
+  // ── Equity Curve ─────────────────────────────────────────────────────────────
+  new Chart(document.getElementById('equityChart'), {
+    type: 'line',
+    data: {
+      labels: equityData.map((_, i) => i === 0 ? 'Start' : 'T' + i),
+      datasets: [{
+        label: 'Equity',
+        data: equityData,
+        borderColor: '#cc66ff',
+        backgroundColor: 'rgba(160,32,240,0.15)',
+        fill: true, tension: 0.3, pointRadius: 3,
+        pointBackgroundColor: '#ff9cff'
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, ...chartDefaults }
+  });
+
+  // ── Win / Loss Pie ────────────────────────────────────────────────────────────
+  const wins   = trades.filter(t => t.pnl > 0).length;
+  const losses = trades.filter(t => t.pnl < 0).length;
+  const breakeven = trades.filter(t => t.pnl === 0).length;
+  new Chart(document.getElementById('winLossChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Wins', 'Losses', 'Breakeven'],
+      datasets: [{
+        data: [wins, losses, breakeven],
+        backgroundColor: ['rgba(100,255,170,0.7)', 'rgba(255,80,120,0.7)', 'rgba(160,100,255,0.5)'],
+        borderColor: ['#66ffaa', '#ff6680', '#aa66ff'], borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#caa6ff' } } }
+    }
+  });
+
+  // ── P&L by Instrument ─────────────────────────────────────────────────────────
+  const instrPnl = {};
+  trades.forEach(t => { instrPnl[t.instr] = (instrPnl[t.instr] || 0) + t.pnl; });
+  new Chart(document.getElementById('instrChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(instrPnl),
+      datasets: [{
+        label: 'P&L',
+        data: Object.values(instrPnl),
+        backgroundColor: Object.values(instrPnl).map(v => v >= 0 ? 'rgba(100,255,170,0.6)' : 'rgba(255,80,120,0.6)'),
+        borderColor:     Object.values(instrPnl).map(v => v >= 0 ? '#66ffaa' : '#ff6680'),
+        borderWidth: 1
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, ...chartDefaults }
+  });
+
+  // ── Long vs Short ─────────────────────────────────────────────────────────────
+  const longPnl  = trades.filter(t => t.dir === 'long') .reduce((s, t) => s + t.pnl, 0);
+  const shortPnl = trades.filter(t => t.dir === 'short').reduce((s, t) => s + t.pnl, 0);
+  new Chart(document.getElementById('dirChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Long', 'Short'],
+      datasets: [{
+        label: 'Total P&L',
+        data: [longPnl, shortPnl],
+        backgroundColor: [
+          longPnl  >= 0 ? 'rgba(100,255,170,0.6)' : 'rgba(255,80,120,0.6)',
+          shortPnl >= 0 ? 'rgba(100,255,170,0.6)' : 'rgba(255,80,120,0.6)'
+        ],
+        borderColor: [
+          longPnl  >= 0 ? '#66ffaa' : '#ff6680',
+          shortPnl >= 0 ? '#66ffaa' : '#ff6680'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, ...chartDefaults }
+  });
+
+  // ── P&L Per Trade Bar ─────────────────────────────────────────────────────────
+  new Chart(document.getElementById('pnlBarChart'), {
+    type: 'bar',
+    data: {
+      labels: trades.map((_, i) => 'T' + (i + 1)),
+      datasets: [{
+        label: 'P&L',
+        data: trades.map(t => t.pnl),
+        backgroundColor: trades.map(t => t.pnl >= 0 ? 'rgba(100,255,170,0.6)' : 'rgba(255,80,120,0.6)'),
+        borderColor:     trades.map(t => t.pnl >= 0 ? '#66ffaa' : '#ff6680'),
+        borderWidth: 1
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, ...chartDefaults }
+  });
+</script>
+
+</body>
+</html>

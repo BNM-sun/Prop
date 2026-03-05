@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trades — Prop Firm Risk Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Prop Firm Risk Dashboard</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="accounts.html">Accounts</a>
+    <a href="trades.html" class="active">Trades</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Summary Row -->
+  <section class="card">
+    <h2>Total Trades</h2>
+    <p class="big-stat" id="statTotal">0</p>
+  </section>
+  <section class="card">
+    <h2>Total P&amp;L</h2>
+    <p class="big-stat" id="statPnl">$0</p>
+  </section>
+  <section class="card">
+    <h2>Win Rate</h2>
+    <p class="big-stat" id="statWinRate">—</p>
+  </section>
+  <section class="card">
+    <h2>Best Trade</h2>
+    <p class="big-stat pnl-pos" id="statBest">—</p>
+  </section>
+
+  <!-- Filters + Table -->
+  <section class="card full-width">
+    <h2>Trade Log</h2>
+
+    <div class="filter-row">
+      <select id="filterInstr">
+        <option value="all">All Instruments</option>
+        <option value="MNQ">MNQ</option>
+        <option value="NQ">NQ</option>
+        <option value="ES">ES</option>
+        <option value="MES">MES</option>
+      </select>
+      <select id="filterDir">
+        <option value="all">All Directions</option>
+        <option value="long">Long</option>
+        <option value="short">Short</option>
+      </select>
+      <select id="filterResult">
+        <option value="all">All Results</option>
+        <option value="win">Wins Only</option>
+        <option value="loss">Losses Only</option>
+      </select>
+      <button onclick="exportCSV()" style="max-width:140px;">Export CSV</button>
+    </div>
+
+    <div id="tradeTableWrap">
+      <div class="empty-msg" id="emptyMsg">No trades logged yet. Go to the Dashboard to log trades.</div>
+      <table id="tradeTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Instrument</th>
+            <th>Direction</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Contracts</th>
+            <th>P&amp;L</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tradeTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Prop Firm Risk Dashboard &mdash; Built for funded traders</p>
+</footer>
+
+<style>
+  .big-stat { font-size: 2em; font-weight: bold; color: #ff9cff; margin-top: 8px; }
+  .filter-row {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .filter-row select { width: auto; flex: 1; margin: 0; }
+</style>
+
+<script>
+  let trades = JSON.parse(localStorage.getItem('trades')) || [];
+
+  function getFiltered() {
+    const instr  = document.getElementById('filterInstr').value;
+    const dir    = document.getElementById('filterDir').value;
+    const result = document.getElementById('filterResult').value;
+
+    return trades.filter(t => {
+      if (instr  !== 'all' && t.instr !== instr) return false;
+      if (dir    !== 'all' && t.dir   !== dir)   return false;
+      if (result === 'win'  && t.pnl <= 0) return false;
+      if (result === 'loss' && t.pnl >= 0) return false;
+      return true;
+    });
+  }
+
+  function render() {
+    const filtered = getFiltered();
+    const tbody    = document.getElementById('tradeTableBody');
+    const table    = document.getElementById('tradeTable');
+    const emptyMsg = document.getElementById('emptyMsg');
+    tbody.innerHTML = '';
+
+    // Summary stats (from all trades, not filtered)
+    const totalPnl  = trades.reduce((s, t) => s + t.pnl, 0);
+    const wins      = trades.filter(t => t.pnl > 0);
+    const best      = trades.length > 0 ? Math.max(...trades.map(t => t.pnl)) : null;
+
+    document.getElementById('statTotal').textContent   = trades.length;
+    document.getElementById('statPnl').textContent     = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2);
+    document.getElementById('statPnl').className       = 'big-stat ' + (totalPnl >= 0 ? 'pnl-pos' : 'pnl-neg');
+    document.getElementById('statWinRate').textContent = trades.length > 0 ? (wins.length / trades.length * 100).toFixed(1) + '%' : '—';
+    document.getElementById('statBest').textContent    = best !== null ? '+$' + best.toFixed(2) : '—';
+
+    if (filtered.length === 0) {
+      table.style.display    = 'none';
+      emptyMsg.style.display = 'block';
+      emptyMsg.textContent   = trades.length === 0
+        ? 'No trades logged yet. Go to the Dashboard to log trades.'
+        : 'No trades match your filters.';
+      return;
+    }
+
+    table.style.display    = 'table';
+    emptyMsg.style.display = 'none';
+
+    // Newest first
+    [...filtered].reverse().forEach((t, i) => {
+      const pnlClass = t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+      const pnlStr   = (t.pnl >= 0 ? '+' : '') + '$' + t.pnl.toFixed(2);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${filtered.length - i}</td>
+        <td>${t.instr}</td>
+        <td>${t.dir.charAt(0).toUpperCase() + t.dir.slice(1)}</td>
+        <td>${t.entry}</td>
+        <td>${t.exit}</td>
+        <td>${t.contracts}</td>
+        <td class="${pnlClass}">${pnlStr}</td>
+        <td>${t.notes || '—'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function exportCSV() {
+    const filtered = getFiltered();
+    if (filtered.length === 0) return alert('No trades to export.');
+    const rows = [['#', 'Instrument', 'Direction', 'Entry', 'Exit', 'Contracts', 'PnL', 'Notes']];
+    filtered.forEach((t, i) => {
+      rows.push([i + 1, t.instr, t.dir, t.entry, t.exit, t.contracts, t.pnl.toFixed(2), t.notes || '']);
+    });
+    const csv  = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'trades.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('filterInstr').addEventListener('change', render);
+  document.getElementById('filterDir').addEventListener('change', render);
+  document.getElementById('filterResult').addEventListener('change', render);
+
+  render();
+</script>
+
+</body>
+</html>
