@@ -3,21 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trades — Prop Firm Risk Dashboard</title>
+  <title>Trades — PropRisk Sage</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --pg-bg: #04010a;
+  --pg-surface: #0d0520;
+  --pg-border: #1e0840;
+  --pg-purple: #7c20e8;
+  --pg-violet: #a855f7;
+  --pg-pink: #e040fb;
+  --pg-text: #f0e8ff;
+  --pg-muted: #7a6090;
+  --pg-mono: 'DM Mono', monospace;
+  --pg-display: 'Syne', sans-serif;
+}
+.app-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: #04010a;
+  border-bottom: 1px solid #1e0840;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.app-nav-logo {
+  font-family: var(--pg-mono); font-size: 0.95rem; font-weight: 500;
+  color: #a855f7; letter-spacing: 3px; text-transform: uppercase;
+  text-decoration: none;
+}
+.app-nav-logo span { color: #e040fb; }
+.app-nav-links { display: flex; gap: 4px; align-items: center; }
+.app-nav-links a {
+  font-family: var(--pg-mono); font-size: 0.75rem;
+  color: #7a6090; text-decoration: none; letter-spacing: 1px;
+  text-transform: uppercase; padding: 7px 14px; border-radius: 5px;
+  transition: all 0.2s;
+}
+.app-nav-links a:hover { color: #f0e8ff; background: #1e0840; }
+.app-nav-links a.active {
+  color: #a855f7; background: rgba(124,32,232,0.12);
+  border: 1px solid rgba(124,32,232,0.25);
+}
+.app-nav-home {
+  font-family: var(--pg-mono); font-size: 0.72rem;
+  color: #7a6090; text-decoration: none; letter-spacing: 1px;
+  text-transform: uppercase; padding: 7px 14px; border-radius: 5px;
+  border: 1px solid #1e0840; transition: all 0.2s;
+}
+.app-nav-home:hover { color: #a855f7; border-color: #7c20e8; }
+.app-footer {
+  border-top: 1px solid #1e0840; padding: 24px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px; margin-top: 40px;
+}
+.app-footer-logo {
+  font-family: var(--pg-mono); font-size: 0.85rem;
+  color: #a855f7; letter-spacing: 2px; text-transform: uppercase;
+}
+.app-footer-links { display: flex; gap: 20px; }
+.app-footer-links a {
+  font-family: var(--pg-mono); font-size: 0.72rem; color: #7a6090;
+  text-decoration: none; letter-spacing: 1px; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.app-footer-links a:hover { color: #f0e8ff; }
+.app-footer-copy {
+  font-family: var(--pg-mono); font-size: 0.7rem; color: #3a2860;
+}
+@media (max-width: 700px) {
+  .app-nav { padding: 14px 16px; }
+  .app-nav-links a { padding: 6px 8px; font-size: 0.68rem; }
+  .app-footer { padding: 20px 16px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+
+<style>
+.nav-user-menu {
+  display: flex; align-items: center; gap: 12px; margin-left: auto;
+}
+.nav-user-email {
+  font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  color: #7a6090; letter-spacing: 0.5px;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nav-signout-btn {
+  font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  color: #7a6090; background: none;
+  border: 1px solid #1e0840; border-radius: 5px;
+  padding: 5px 12px; cursor: pointer; letter-spacing: 1px;
+  text-transform: uppercase; transition: all 0.2s;
+}
+.nav-signout-btn:hover { color: #ff4466; border-color: #ff4466; }
+</style>
 </head>
 <body>
 
-<header>
-  <h1>Prop Firm Risk Dashboard</h1>
-  <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="accounts.html">Accounts</a>
+<!-- Supabase Auth Guard -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const _sb = supabase.createClient(
+    'https://enszttdunhtchyufkwbe.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
+  );
+  (async () => {
+    const { data } = await _sb.auth.getSession();
+    if (!data.session) {
+      window.location.href = 'auth.html';
+    } else {
+      // Show user email in nav
+      const emailEl = document.getElementById('nav-user-email');
+      if (emailEl) emailEl.textContent = data.session.user.email;
+    }
+  })();
+</script>
+
+
+<nav class="app-nav">
+  <a href="index.html" class="app-nav-logo">PropRisk <span>Sage</span></a>
+  <div class="app-nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="accounts.html" class="">Accounts</a>
     <a href="trades.html" class="active">Trades</a>
-    <a href="analytics.html">Analytics</a>
-    <a href="settings.html">Settings</a>
-  </nav>
-</header>
+    <a href="analytics.html" class="">Analytics</a>
+    <a href="settings.html" class="">Settings</a>
+  </div>
+  <a href="index.html" class="app-nav-home">← Home</a>
+  <div class="nav-user-menu">
+    <span class="nav-user-email" id="nav-user-email"></span>
+    <button class="nav-signout-btn" onclick="signOut()">Sign Out</button>
+  </div>
+</nav>
 
 <main>
 
@@ -86,8 +204,15 @@
 
 </main>
 
-<footer>
-  <p>Prop Firm Risk Dashboard &mdash; Built for funded traders</p>
+<footer class="app-footer">
+  <div class="app-footer-logo">PropRisk Sage</div>
+  <div class="app-footer-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="settings.html">Settings</a>
+    <a href="compare.html">Compare</a>
+  </div>
+  <div class="app-footer-copy">© 2025 PropRisk Sage. Built for funded traders.</div>
 </footer>
 
 <style>

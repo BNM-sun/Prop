@@ -1,4 +1,4 @@
-
+/* ── Base ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -9,33 +9,9 @@ body {
   min-height: 100vh;
 }
 
+/* ── Header/Nav handled by app-nav styles injected in each page ── */
 
-header {
-  background: #0b0015;
-  padding: 20px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid purple;
-}
-
-header h1 {
-  font-size: 1.4em;
-  color: #caa6ff;
-  letter-spacing: 1px;
-}
-
-nav a {
-  color: #caa6ff;
-  margin: 0 10px;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.2s;
-}
-
-nav a:hover, nav a.active { color: #ff9cff; border-bottom: 2px solid #cc66ff; padding-bottom: 2px; }
-
-
+/* ── Breach Alert Banner ── */
 #breachAlert {
   display: none;
   background: linear-gradient(90deg, #6600cc, #ff0055);
@@ -54,7 +30,7 @@ nav a:hover, nav a.active { color: #ff9cff; border-bottom: 2px solid #cc66ff; pa
   50%       { opacity: 0.65; }
 }
 
-
+/* ── Confirm Dialog ── */
 #confirmOverlay {
   display: none;
   position: fixed;
@@ -90,7 +66,7 @@ nav a:hover, nav a.active { color: #ff9cff; border-bottom: 2px solid #cc66ff; pa
 #confirmBox .btn-cancel { background: #3a0060; }
 #confirmBox .btn-cancel:hover { background: #55007a; }
 
-
+/* ── Main Grid ── */
 main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -98,7 +74,7 @@ main {
   padding: 30px;
 }
 
-
+/* ── Cards ── */
 .card {
   background: #0e001a;
   padding: 20px;
@@ -115,7 +91,7 @@ main {
   letter-spacing: 1px;
 }
 
-
+/* ── Forms ── */
 form { display: flex; flex-direction: column; }
 
 label {
@@ -144,7 +120,7 @@ input:focus, select:focus, textarea:focus {
 select option { background: #150024; }
 textarea { resize: vertical; min-height: 60px; }
 
-
+/* ── Buttons ── */
 button {
   background: purple;
   color: white;
@@ -158,7 +134,7 @@ button {
 }
 button:hover { background: #a020f0; }
 
-
+/* ── Output ── */
 .output {
   margin-top: 10px;
   font-weight: bold;
@@ -167,7 +143,7 @@ button:hover { background: #a020f0; }
   line-height: 1.8;
 }
 
-
+/* ── Highlights & Status ── */
 .highlight {
   color: #ff9cff;
   font-weight: bold;
@@ -175,7 +151,7 @@ button:hover { background: #a020f0; }
 .highlight.warning { color: orange; }
 .highlight.danger  { color: #ff4444; }
 
-
+/* ── Progress Bar ── */
 .progress-bar {
   width: 100%;
   background: #200040;
@@ -191,7 +167,7 @@ button:hover { background: #a020f0; }
   transition: width 0.4s ease;
 }
 
-
+/* ── Stats List ── */
 ul { list-style: none; padding: 0; }
 ul li {
   padding: 6px 0;
@@ -201,7 +177,7 @@ ul li {
 }
 ul li:last-child { border-bottom: none; }
 
-
+/* ── Error Messages ── */
 .error {
   color: #ff6680;
   font-size: 0.85em;
@@ -209,7 +185,7 @@ ul li:last-child { border-bottom: none; }
   min-height: 18px;
 }
 
-
+/* ── Trade History Table ── */
 .full-width { grid-column: 1 / -1; }
 
 #tradeTableWrap { overflow-x: auto; margin-top: 8px; }
@@ -256,7 +232,7 @@ ul li:last-child { border-bottom: none; }
 }
 .btn-delete:hover { background: #880044; }
 
-
+/* ── Footer ── */
 footer {
   text-align: center;
   padding: 20px;
@@ -265,7 +241,7 @@ footer {
   font-size: 0.85em;
 }
 
-
+/* ── Responsive ── */
 @media (max-width: 600px) {
   main { grid-template-columns: 1fr; padding: 16px; }
   header { flex-direction: column; gap: 12px; text-align: center; }

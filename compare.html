@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Firms — PropRisk Sage</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --pg-bg:      #04010a;
+  --pg-surface: #0d0520;
+  --pg-border:  #1e0840;
+  --pg-purple:  #7c20e8;
+  --pg-violet:  #a855f7;
+  --pg-pink:    #e040fb;
+  --pg-text:    #f0e8ff;
+  --pg-muted:   #7a6090;
+  --pg-mono:    'DM Mono', monospace;
+  --pg-display: 'Syne', sans-serif;
+  --green:  #00ffaa;
+  --yellow: #ffcc00;
+  --red:    #ff4466;
+  --orange: #ff8800;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--pg-display);
+  background: var(--pg-bg);
+  color: var(--pg-text);
+  min-height: 100vh;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(124,32,232,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,32,232,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── NAV ── */
+.app-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: #04010a;
+  border-bottom: 1px solid #1e0840;
+  position: sticky; top: 0; z-index: 100;
+}
+.app-nav-logo {
+  font-family: var(--pg-mono); font-size: 0.95rem;
+  color: #a855f7; letter-spacing: 3px; text-transform: uppercase;
+  text-decoration: none;
+}
+.app-nav-logo span { color: #e040fb; }
+.app-nav-links { display: flex; gap: 4px; }
+.app-nav-links a {
+  font-family: var(--pg-mono); font-size: 0.75rem;
+  color: #7a6090; text-decoration: none; letter-spacing: 1px;
+  text-transform: uppercase; padding: 7px 14px; border-radius: 5px;
+  transition: all 0.2s;
+}
+.app-nav-links a:hover { color: #f0e8ff; background: #1e0840; }
+.app-nav-links a.active {
+  color: #a855f7; background: rgba(124,32,232,0.12);
+  border: 1px solid rgba(124,32,232,0.25);
+}
+.app-nav-home {
+  font-family: var(--pg-mono); font-size: 0.72rem;
+  color: #7a6090; text-decoration: none; letter-spacing: 1px;
+  text-transform: uppercase; padding: 7px 14px; border-radius: 5px;
+  border: 1px solid #1e0840; transition: all 0.2s;
+}
+.app-nav-home:hover { color: #a855f7; border-color: #7c20e8; }
+
+/* ── PAGE LAYOUT ── */
+.page-wrap { max-width: 1400px; margin: 0 auto; padding: 40px 32px; position: relative; z-index: 1; }
+
+.page-header { margin-bottom: 36px; }
+.page-label {
+  font-family: var(--pg-mono); font-size: 0.7rem; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--pg-violet); margin-bottom: 12px;
+}
+.page-title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800;
+  letter-spacing: -1px; margin-bottom: 10px;
+}
+.page-sub {
+  font-family: var(--pg-mono); font-size: 0.85rem;
+  color: var(--pg-muted); line-height: 1.6;
+}
+
+/* ── FIRM SELECTOR ── */
+.selector-wrap {
+  background: var(--pg-surface); border: 1px solid var(--pg-border);
+  border-radius: 14px; padding: 28px 32px; margin-bottom: 36px;
+}
+.selector-label {
+  font-family: var(--pg-mono); font-size: 0.72rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--pg-muted); margin-bottom: 18px;
+}
+.firm-picker-row {
+  display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
+}
+.firm-slot { flex: 1; min-width: 200px; }
+.firm-slot label {
+  display: block; font-family: var(--pg-mono); font-size: 0.72rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--pg-muted); margin-bottom: 8px;
+}
+.firm-slot select {
+  width: 100%; padding: 11px 14px;
+  background: var(--pg-bg); border: 1px solid var(--pg-border);
+  color: var(--pg-text); border-radius: 7px;
+  font-family: var(--pg-mono); font-size: 0.85rem;
+  transition: border-color 0.2s; cursor: pointer;
+}
+.firm-slot select:focus { outline: none; border-color: var(--pg-violet); }
+select option { background: #0d0520; }
+
+.btn-compare {
+  padding: 11px 28px; font-family: var(--pg-display); font-size: 0.9rem;
+  font-weight: 700; background: linear-gradient(135deg, var(--pg-purple), var(--pg-pink));
+  color: white; border: none; border-radius: 7px; cursor: pointer;
+  transition: all 0.2s; letter-spacing: 0.5px; white-space: nowrap;
+  box-shadow: 0 0 24px rgba(124,32,232,0.3);
+}
+.btn-compare:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 36px rgba(124,32,232,0.5);
+}
+
+.selector-tip {
+  font-family: var(--pg-mono); font-size: 0.75rem;
+  color: var(--pg-muted); margin-top: 14px;
+}
+.selector-tip span { color: var(--pg-violet); }
+
+/* ── COMPARISON TABLE ── */
+#comparisonWrap { display: none; }
+
+.comp-table-wrap { overflow-x: auto; }
+
+.comp-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--pg-mono); font-size: 0.83rem;
+}
+
+/* Sticky first column */
+.comp-table td:first-child,
+.comp-table th:first-child {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--pg-bg);
+  min-width: 200px;
+}
+
+/* Header row */
+.comp-table thead tr {
+  border-bottom: 2px solid var(--pg-border);
+}
+.comp-table th {
+  padding: 0; text-align: left; font-weight: 600;
+}
+.th-label {
+  padding: 16px 20px; color: var(--pg-muted);
+  font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;
+}
+
+/* Firm header cell */
+.firm-header-cell {
+  padding: 20px 24px; min-width: 260px;
+  border-left: 1px solid var(--pg-border);
+  border-bottom: 2px solid var(--pg-border);
+  vertical-align: top;
+}
+.fhc-name {
+  font-family: var(--pg-display); font-size: 1rem; font-weight: 700;
+  color: var(--pg-text); margin-bottom: 8px;
+}
+.fhc-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.badge {
+  font-size: 0.62rem; padding: 3px 9px; border-radius: 3px;
+  font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-verified { background: rgba(0,255,170,0.1);  color: var(--green);  border: 1px solid rgba(0,255,170,0.25); }
+.badge-caution  { background: rgba(255,204,0,0.1);   color: var(--yellow); border: 1px solid rgba(255,204,0,0.25); }
+.badge-scam     { background: rgba(255,68,102,0.1);  color: var(--red);    border: 1px solid rgba(255,68,102,0.25); }
+.badge-futures  { background: rgba(168,85,247,0.1);  color: var(--pg-violet); border: 1px solid rgba(168,85,247,0.25); }
+.badge-forex    { background: rgba(0,170,255,0.1);   color: #00aaff; border: 1px solid rgba(0,170,255,0.25); }
+
+.fhc-price {
+  font-size: 1.3rem; font-weight: 800; color: var(--pg-violet);
+  margin-bottom: 4px;
+}
+.fhc-price-sub { font-size: 0.72rem; color: var(--pg-muted); }
+
+/* Body rows */
+.comp-table tbody tr {
+  border-bottom: 1px solid rgba(30,8,64,0.6);
+  transition: background 0.15s;
+}
+.comp-table tbody tr:hover td { background: rgba(124,32,232,0.04); }
+.comp-table tbody tr:hover td:first-child { background: #07020f; }
+
+/* Section header rows */
+.comp-table tr.section-row td {
+  background: rgba(124,32,232,0.08);
+  border-top: 1px solid var(--pg-border);
+  padding: 10px 20px;
+  font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--pg-violet); font-weight: 600;
+}
+.comp-table tr.section-row td:first-child { background: rgba(124,32,232,0.12); }
+
+/* Row label */
+.row-label {
+  padding: 14px 20px; color: var(--pg-muted);
+  font-size: 0.8rem; vertical-align: middle;
+  border-right: 1px solid var(--pg-border);
+}
+.row-label .rl-name { color: var(--pg-text); font-weight: 500; margin-bottom: 2px; }
+.row-label .rl-sub  { font-size: 0.7rem; color: var(--pg-muted); }
+
+/* Value cells */
+.val-cell {
+  padding: 14px 24px; vertical-align: middle;
+  border-left: 1px solid var(--pg-border);
+  min-width: 240px;
+}
+.val-cell .val-main {
+  font-weight: 500; color: var(--pg-text); margin-bottom: 2px;
+}
+.val-cell .val-sub { font-size: 0.72rem; color: var(--pg-muted); }
+
+/* Highlight best/worst */
+.val-cell.best  { background: rgba(0,255,170,0.04); }
+.val-cell.worst { background: rgba(255,68,102,0.04); }
+.val-cell.best  .val-main { color: var(--green); }
+.val-cell.worst .val-main { color: var(--red); }
+.val-cell.mid   .val-main { color: var(--yellow); }
+
+/* Boolean values */
+.bool-yes { color: var(--green); font-weight: 600; }
+.bool-no  { color: var(--red);   font-weight: 600; }
+.bool-mid { color: var(--yellow); font-weight: 600; }
+
+/* Hidden rule warning inline */
+.hidden-rule {
+  display: inline-flex; align-items: flex-start; gap: 6px;
+  background: rgba(255,204,0,0.06); border: 1px solid rgba(255,204,0,0.2);
+  border-radius: 5px; padding: 7px 10px; margin-top: 6px;
+  font-size: 0.72rem; color: var(--yellow); line-height: 1.5;
+  width: 100%;
+}
+.hidden-rule .hr-icon { flex-shrink: 0; margin-top: 1px; }
+
+/* Score bar */
+.score-wrap { display: flex; align-items: center; gap: 10px; }
+.score-bar  {
+  flex: 1; height: 6px; background: var(--pg-border);
+  border-radius: 3px; overflow: hidden;
+}
+.score-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--pg-purple), var(--pg-pink));
+  transition: width 0.6s ease;
+}
+.score-num { font-size: 0.8rem; color: var(--pg-violet); font-weight: 600; min-width: 28px; }
+
+/* Summary cards */
+.summary-row {
+  display: grid; gap: 16px; margin-top: 36px;
+}
+.summary-card {
+  background: var(--pg-surface); border: 1px solid var(--pg-border);
+  border-radius: 12px; padding: 24px 28px; position: relative;
+  overflow: hidden;
+}
+.summary-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--pg-purple), var(--pg-pink));
+}
+.sc-firm { font-family: var(--pg-mono); font-size: 0.7rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--pg-violet); margin-bottom: 8px; }
+.sc-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; }
+.sc-verdict {
+  font-family: var(--pg-mono); font-size: 0.8rem;
+  color: var(--pg-muted); line-height: 1.65; margin-bottom: 16px;
+}
+.sc-pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sc-pros h4, .sc-cons h4 {
+  font-family: var(--pg-mono); font-size: 0.65rem; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.sc-pros h4 { color: var(--green); }
+.sc-cons h4 { color: var(--red); }
+.sc-pros ul, .sc-cons ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.sc-pros li, .sc-cons li {
+  font-family: var(--pg-mono); font-size: 0.75rem;
+  color: var(--pg-muted); display: flex; gap: 6px; align-items: flex-start;
+  line-height: 1.4;
+}
+.sc-pros li::before { content: '+'; color: var(--green); flex-shrink: 0; }
+.sc-cons li::before { content: '−'; color: var(--red);   flex-shrink: 0; }
+
+.load-btn {
+  display: inline-block; margin-top: 16px; padding: 9px 20px;
+  background: transparent; border: 1px solid var(--pg-border);
+  color: var(--pg-violet); border-radius: 5px; font-family: var(--pg-mono);
+  font-size: 0.78rem; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s; text-decoration: none;
+}
+.load-btn:hover { background: rgba(124,32,232,0.12); border-color: var(--pg-violet); }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 80px 40px;
+  background: var(--pg-surface); border: 1px solid var(--pg-border);
+  border-radius: 14px;
+}
+.empty-state .es-icon { font-size: 3rem; margin-bottom: 20px; display: block; }
+.empty-state h3 {
+  font-size: 1.2rem; font-weight: 700; margin-bottom: 10px;
+  color: var(--pg-text);
+}
+.empty-state p {
+  font-family: var(--pg-mono); font-size: 0.82rem;
+  color: var(--pg-muted); line-height: 1.6;
+}
+
+/* Footer */
+.app-footer {
+  border-top: 1px solid #1e0840; padding: 24px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px; margin-top: 60px; position: relative; z-index: 1;
+}
+.app-footer-logo { font-family: var(--pg-mono); font-size: 0.85rem; color: #a855f7; letter-spacing: 2px; text-transform: uppercase; }
+.app-footer-links { display: flex; gap: 20px; }
+.app-footer-links a { font-family: var(--pg-mono); font-size: 0.72rem; color: #7a6090; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s; }
+.app-footer-links a:hover { color: #f0e8ff; }
+.app-footer-copy { font-family: var(--pg-mono); font-size: 0.7rem; color: #3a2860; }
+
+@media (max-width: 700px) {
+  .app-nav { padding: 14px 16px; }
+  .app-nav-links a { padding: 6px 8px; font-size: 0.68rem; }
+  .page-wrap { padding: 24px 16px; }
+  .selector-wrap { padding: 20px 18px; }
+  .firm-picker-row { flex-direction: column; }
+  .sc-pros-cons { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="app-nav">
+  <a href="landing.html" class="app-nav-logo">PropRisk<span>
+    Sage</span></a>
+  <div class="app-nav-links">
+    <a href="index.html">Dashboard</a>
+    <a href="accounts.html">Accounts</a>
+    <a href="trades.html">Trades</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+    <a href="compare.html" class="active">Compare</a>
+  </div>
+  <a href="index.html" class="app-nav-home">← Home</a>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <p class="page-label">Prop Firm Comparison</p>
+    <h1 class="page-title">Find the right firm before you pay.</h1>
+    <p class="page-sub">Select up to 3 firms to compare rules, fees, restrictions and hidden gotchas side by side. Verified firms are confirmed paying via Payout Junction.</p>
+  </div>
+
+  <!-- Firm Selector -->
+  <div class="selector-wrap">
+    <p class="selector-label">Select firms to compare</p>
+    <div class="firm-picker-row">
+      <div class="firm-slot">
+        <label>Firm 1</label>
+        <select id="pick1">
+          <option value="">— Select a firm —</option>
+        </select>
+      </div>
+      <div class="firm-slot">
+        <label>Firm 2</label>
+        <select id="pick2">
+          <option value="">— Select a firm —</option>
+        </select>
+      </div>
+      <div class="firm-slot">
+        <label>Firm 3 (optional)</label>
+        <select id="pick3">
+          <option value="">— None —</option>
+        </select>
+      </div>
+      <button class="btn-compare" onclick="runComparison()">Compare →</button>
+    </div>
+    <p class="selector-tip">Tip: <span>Green = best value · Red = most restrictive · Yellow = middle ground</span></p>
+  </div>
+
+  <!-- Comparison Output -->
+  <div id="comparisonWrap">
+    <div class="comp-table-wrap">
+      <table class="comp-table" id="compTable">
+        <thead id="compHead"></thead>
+        <tbody id="compBody"></tbody>
+      </table>
+    </div>
+    <div class="summary-row" id="summaryRow"></div>
+  </div>
+
+  <!-- Empty state shown on load -->
+  <div id="emptyState" class="empty-state">
+    <span class="es-icon">⚖️</span>
+    <h3>Select firms above to start comparing</h3>
+    <p>Choose 2 or 3 firms from the dropdowns and click Compare.<br>We'll show you every rule that matters — including the ones they don't advertise.</p>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="app-footer-logo">PropRisk Sage</div>
+  <div class="app-footer-links">
+    <a href="landing.html">Home</a>
+    <a href="index.html">Dashboard</a>
+    <a href="settings.html">Settings</a>
+  </div>
+  <div class="app-footer-copy">© 2026 PropRisk Sage. Built for funded traders.</div>
+</footer>
+
+<script>
+// ─── FIRM DATABASE ─────────────────────────────────────────────────────────
+const FIRMS = [
+  {
+    id: 'apex',
+    name: 'Apex Trader Funding',
+    type: 'futures',
+    trust: 'verified',
+    challengePrice50k: 137,
+    accountSizes: ['25K','50K','100K','150K','250K','300K'],
+    evaluation: '1-step',
+    minTradingDays: 0,
+    dailyDD: 3,
+    dailyDDDollars: 1500,
+    maxDD: 6,
+    maxDDDollars: 3000,
+    ddType: 'EOD Trailing',
+    profitTarget: 3000,
+    profitTargetPct: 6,
+    payoutSplit: 90,
+    maxContracts: 'Varies by account',
+    newsTrading: true,
+    weekendHolding: false,
+    eaAllowed: true,
+    payoutFrequency: 'Weekly',
+    payoutMin: 500,
+    consistencyRule: true,
+    scalingPlan: false,
+    activeTradingDays: false,
+    payoutJunction: true,
+    hiddenRules: [
+      { text: 'Consistency Rule: No single day can exceed 30% of total profits. A big winning day early can limit how you trade after.' },
+      { text: 'EOD Trailing: Drawdown trails your end-of-day balance, not intraday. A profitable day tightens your drawdown.' },
+    ],
+    pros: ['No minimum trading days','Weekly payouts','90% profit split','Multiple account sizes up to 300K'],
+    cons: ['Consistency rule trips up many traders','EOD trailing drawdown is stricter than it sounds','No weekend holding'],
+    verdict: 'Great for disciplined traders who don\'t need a quick turnaround. The consistency rule is the main trap — avoid making 90% of your profit in one day.'
+  },
+  {
+    id: 'topstep',
+    name: 'Topstep',
+    type: 'futures',
+    trust: 'verified',
+    challengePrice50k: 165,
+    accountSizes: ['50K','100K','150K'],
+    evaluation: '1-step',
+    minTradingDays: 5,
+    dailyDD: 4,
+    dailyDDDollars: 2000,
+    maxDD: 6,
+    maxDDDollars: 3000,
+    ddType: 'EOD Trailing',
+    profitTarget: 3000,
+    profitTargetPct: 6,
+    payoutSplit: 90,
+    maxContracts: 'Scaling plan applies',
+    newsTrading: false,
+    weekendHolding: false,
+    eaAllowed: true,
+    payoutFrequency: 'Weekly',
+    payoutMin: 100,
+    consistencyRule: false,
+    scalingPlan: true,
+    activeTradingDays: true,
+    payoutJunction: true,
+    hiddenRules: [
+      { text: 'News Trading Ban: No positions open within 2 minutes before or after major news events (NFP, FOMC, CPI). Accounts have been terminated for this.' },
+      { text: 'Scaling Plan on funded: You cannot immediately trade max contracts. There is a ramp-up plan most traders miss in the ToS.' },
+      { text: 'Minimum 5 trading days: Even if you hit profit target in day 1, you must trade 4 more days before passing.' },
+    ],
+    pros: ['No consistency rule','Low $100 minimum payout','Well established and trusted','Weekly payouts'],
+    cons: ['News trading strictly banned','5 minimum trading days','Scaling plan on funded','No weekend holding'],
+    verdict: 'Solid and trustworthy but the news trading ban is strictly enforced. If you trade around news events you need to be very careful or choose a different firm.'
+  },
+  {
+    id: 'ftmo',
+    name: 'FTMO',
+    type: 'forex',
+    trust: 'verified',
+    challengePrice50k: 345,
+    accountSizes: ['10K','25K','50K','100K','200K'],
+    evaluation: '2-step',
+    minTradingDays: 4,
+    dailyDD: 5,
+    dailyDDDollars: 2500,
+    maxDD: 10,
+    maxDDDollars: 5000,
+    ddType: 'Static',
+    profitTarget: 5000,
+    profitTargetPct: 10,
+    payoutSplit: 80,
+    maxContracts: 'No restriction stated',
+    newsTrading: true,
+    weekendHolding: false,
+    eaAllowed: true,
+    payoutFrequency: 'Monthly (on-demand after)',
+    payoutMin: 1,
+    consistencyRule: false,
+    scalingPlan: false,
+    activeTradingDays: true,
+    payoutJunction: false,
+    hiddenRules: [
+      { text: 'Minimum 4 trading days: Must trade on at least 4 separate calendar days. Many traders hit target in 2 days and stop — then fail.' },
+      { text: 'Daily loss resets at midnight CET: Not your local time. Traders outside Europe often miscalculate this.' },
+      { text: 'Two-step evaluation: Must pass Phase 1 then Phase 2 before getting funded — costs more time and has more chances to fail.' },
+    ],
+    pros: ['No consistency rule','Largest account sizes available','Well known globally','Static drawdown (doesn\'t trail)'],
+    cons: ['2-step evaluation','Higher challenge fee','4 minimum trading days','80% split (lower than others)','No Payout Junction listing'],
+    verdict: 'The gold standard for forex traders but expensive and 2-step. Static drawdown is a genuine advantage. Not ideal if you want fast funding or trade futures.'
+  },
+  {
+    id: 'mff',
+    name: 'MyFundedFutures',
+    type: 'futures',
+    trust: 'verified',
+    challengePrice50k: 165,
+    accountSizes: ['50K','100K','150K'],
+    evaluation: '1-step',
+    minTradingDays: 0,
+    dailyDD: 3,
+    dailyDDDollars: 1500,
+    maxDD: 6,
+    maxDDDollars: 3000,
+    ddType: 'EOD Trailing',
+    profitTarget: 3000,
+    profitTargetPct: 6,
+    payoutSplit: 90,
+    maxContracts: 'Contract limits apply per account',
+    newsTrading: true,
+    weekendHolding: false,
+    eaAllowed: false,
+    payoutFrequency: 'Bi-weekly',
+    payoutMin: 500,
+    consistencyRule: false,
+    scalingPlan: false,
+    activeTradingDays: false,
+    payoutJunction: true,
+    hiddenRules: [
+      { text: 'No EAs or third-party trading tools: Automated strategies are not permitted. Accounts using EAs have been terminated without payout.' },
+      { text: 'No weekend holding: All positions must be flat before Friday close. Forgetting once can void the account.' },
+      { text: 'Contract limits per account size: Maximum contracts are restricted — check your specific account tier.' },
+    ],
+    pros: ['No consistency rule','No minimum trading days','90% profit split','Simple 1-step evaluation'],
+    cons: ['No EAs allowed','No weekend holding','Bi-weekly payout (not weekly)','Smaller account size range'],
+    verdict: 'Clean and simple rules — great for manual traders who don\'t rely on automation. The EA ban is strictly enforced. One of the easier challenges if you trade clean.'
+  },
+  {
+    id: 'take',
+    name: 'Take Profit Trader',
+    type: 'futures',
+    trust: 'verified',
+    challengePrice50k: 150,
+    accountSizes: ['25K','50K','100K','150K'],
+    evaluation: '1-step',
+    minTradingDays: 5,
+    dailyDD: 4,
+    dailyDDDollars: 2000,
+    maxDD: 8,
+    maxDDDollars: 4000,
+    ddType: 'EOD Trailing',
+    profitTarget: 3000,
+    profitTargetPct: 6,
+    payoutSplit: 80,
+    maxContracts: 'Based on account size',
+    newsTrading: true,
+    weekendHolding: false,
+    eaAllowed: true,
+    payoutFrequency: 'Weekly',
+    payoutMin: 500,
+    consistencyRule: false,
+    scalingPlan: false,
+    activeTradingDays: true,
+    payoutJunction: true,
+    hiddenRules: [
+      { text: 'Minimum 5 trading days required: Profit target must be reached across at least 5 different trading days.' },
+      { text: 'No weekend holding: Must be flat before Friday market close.' },
+    ],
+    pros: ['Competitive pricing','No consistency rule','EAs allowed','Weekly payouts'],
+    cons: ['5 minimum trading days','80% profit split','No weekend holding','Higher max DD (means less protection)'],
+    verdict: 'Affordable with relaxed rules. The 5 minimum days requirement is the main constraint. Good option if you want a cheaper entry point with EA support.'
+  },
+  {
+    id: 'bulenox',
+    name: 'Bulenox',
+    type: 'futures',
+    trust: 'caution',
+    challengePrice50k: 119,
+    accountSizes: ['10K','25K','50K','100K'],
+    evaluation: '1-step',
+    minTradingDays: 0,
+    dailyDD: 3,
+    dailyDDDollars: 1500,
+    maxDD: 6,
+    maxDDDollars: 3000,
+    ddType: 'EOD Trailing',
+    profitTarget: 3000,
+    profitTargetPct: 6,
+    payoutSplit: 80,
+    maxContracts: 'Based on account size',
+    newsTrading: true,
+    weekendHolding: false,
+    eaAllowed: true,
+    payoutFrequency: 'Weekly',
+    payoutMin: 250,
+    consistencyRule: false,
+    scalingPlan: false,
+    activeTradingDays: false,
+    payoutJunction: false,
+    hiddenRules: [
+      { text: 'Not listed on Payout Junction: Payout history is not independently verified. Proceed with caution before investing challenge fees.' },
+      { text: 'No weekend holding: Positions must be closed before market close Friday.' },
+    ],
+    pros: ['Cheapest challenge fee','No minimum trading days','No consistency rule','Low $250 payout minimum'],
+    cons: ['Not Payout Junction verified','80% profit split','Limited track record','Caution flag — verify before purchasing'],
+    verdict: 'The cheapest option but also the least verified. If budget is the primary concern this is worth researching but do not commit until you find independent payout evidence.'
+  },
+  {
+    id: 'tradeday',
+    name: 'TradeDay',
+    type: 'futures',
+    trust: 'verified',
+    challengePrice50k: 150,
+    accountSizes: ['10K','25K','50K','100K'],
+    evaluation: '1-step',
+    minTradingDays: 0,
+    dailyDD: 4,
+    dailyDDDollars: 2000,
+    maxDD: 8,
+    maxDDDollars: 4000,
+    ddType: 'Intraday Trailing',
+    profitTarget: 3000,
+    profitTargetPct: 6,
+    payoutSplit: 90,
+    maxContracts: 'Based on account size',
+    newsTrading: true,
+    weekendHolding: false,
+    eaAllowed: true,
+    payoutFrequency: 'Weekly',
+    payoutMin: 200,
+    consistencyRule: false,
+    scalingPlan: false,
+    activeTradingDays: false,
+    payoutJunction: true,
+    hiddenRules: [
+      { text: 'Intraday trailing drawdown: Unlike EOD trailing, this tracks your highest intraday balance — much stricter. A spike up during the day tightens your floor immediately.' },
+      { text: 'No weekend holding allowed.' },
+    ],
+    pros: ['No minimum trading days','90% profit split','No consistency rule','Payout Junction verified'],
+    cons: ['Intraday trailing DD is strictest type','No weekend holding','Smaller account sizes'],
+    verdict: 'Great payout split and no minimum days but the intraday trailing drawdown is the strictest type available. Scalpers and volatile traders should be very careful.'
+  },
+];
+
+// ─── Populate dropdowns ───────────────────────────────────────────────────
+function populateDropdowns() {
+  ['pick1','pick2','pick3'].forEach((id, i) => {
+    const sel = document.getElementById(id);
+    FIRMS.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.name + (f.trust === 'caution' ? ' ⚠' : f.trust === 'scam' ? ' 🚫' : '');
+      sel.appendChild(opt);
+    });
+  });
+}
+
+// ─── Run comparison ───────────────────────────────────────────────────────
+function runComparison() {
+  const ids = [
+    document.getElementById('pick1').value,
+    document.getElementById('pick2').value,
+    document.getElementById('pick3').value,
+  ].filter(Boolean);
+
+  if (ids.length < 2) {
+    alert('Please select at least 2 firms to compare.');
+    return;
+  }
+
+  const firms = ids.map(id => FIRMS.find(f => f.id === id));
+
+  document.getElementById('emptyState').style.display     = 'none';
+  document.getElementById('comparisonWrap').style.display = 'block';
+
+  buildTable(firms);
+  buildSummary(firms);
+
+  document.getElementById('comparisonWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── Table builder ────────────────────────────────────────────────────────
+function buildTable(firms) {
+  const head = document.getElementById('compHead');
+  const body = document.getElementById('compBody');
+  head.innerHTML = '';
+  body.innerHTML = '';
+
+  // Header row
+  const headerRow = document.createElement('tr');
+  const thLabel = document.createElement('th');
+  thLabel.innerHTML = '<div class="th-label">Rule / Metric</div>';
+  headerRow.appendChild(thLabel);
+
+  firms.forEach(f => {
+    const th = document.createElement('th');
+    th.innerHTML = `
+      <div class="firm-header-cell">
+        <div class="fhc-name">${f.name}</div>
+        <div class="fhc-badges">
+          ${trustBadge(f.trust)}
+          <span class="badge badge-${f.type}">${f.type}</span>
+          ${f.evaluation === '2-step' ? '<span class="badge" style="background:rgba(255,136,0,0.1);color:#ff8800;border:1px solid rgba(255,136,0,0.25);">2-step</span>' : ''}
+        </div>
+        <div class="fhc-price">$${f.challengePrice50k}<span> / 50K challenge</span></div>
+        <div class="fhc-price-sub">Account sizes: ${f.accountSizes.join(', ')}</div>
+      </div>`;
+    headerRow.appendChild(th);
+  });
+  head.appendChild(headerRow);
+
+  // ── Row definitions ──────────────────────────────────────────────────────
+  const ROWS = [
+    { section: 'COST & STRUCTURE' },
+    {
+      label: 'Challenge Fee', sub: '50K account',
+      render: firms => rankCells(firms, f => f.challengePrice50k,
+        v => `$${v}`, 'lower', v => '')
+    },
+    {
+      label: 'Evaluation Type', sub: '',
+      render: firms => firms.map(f => cell(
+        f.evaluation === '1-step'
+          ? `<span class="bool-yes">1-Step</span>`
+          : `<span class="bool-mid">2-Step</span>`,
+        ''
+      ))
+    },
+    {
+      label: 'Profit Split', sub: 'Funded account',
+      render: firms => rankCells(firms, f => f.payoutSplit,
+        v => `${v}%`, 'higher', v => '')
+    },
+    {
+      label: 'Profit Target', sub: '50K account',
+      render: firms => rankCells(firms, f => f.profitTarget,
+        v => `$${v.toLocaleString()} (${firms.find(x=>x.profitTarget===v) ? firms.find(x=>x.profitTarget===v).profitTargetPct : ''}%)`,
+        'lower', v => '')
+    },
+
+    { section: 'DRAWDOWN RULES' },
+    {
+      label: 'Daily Loss Limit', sub: '50K account',
+      render: firms => rankCells(firms, f => f.dailyDDDollars,
+        v => {
+          const f2 = firms.find(x => x.dailyDDDollars === v);
+          return `$${v.toLocaleString()} (${f2 ? f2.dailyDD : ''}%)`;
+        }, 'higher', v => '')
+    },
+    {
+      label: 'Max Drawdown', sub: '50K account',
+      render: firms => rankCells(firms, f => f.maxDDDollars,
+        v => {
+          const f2 = firms.find(x => x.maxDDDollars === v);
+          return `$${v.toLocaleString()} (${f2 ? f2.maxDD : ''}%)`;
+        }, 'higher', v => '')
+    },
+    {
+      label: 'Drawdown Type', sub: 'How DD is calculated',
+      render: firms => firms.map(f => {
+        const isWorst = f.ddType === 'Intraday Trailing';
+        const isMid   = f.ddType === 'EOD Trailing';
+        const isBest  = f.ddType === 'Static';
+        return cell(
+          `<span class="${isBest ? 'bool-yes' : isWorst ? 'bool-no' : 'bool-mid'}">${f.ddType}</span>`,
+          isBest ? 'Best — never tightens' : isWorst ? 'Strictest — tightens intraday' : 'Trails end-of-day balance'
+        );
+      })
+    },
+
+    { section: 'TRADING RESTRICTIONS' },
+    {
+      label: 'Min Trading Days', sub: 'To pass evaluation',
+      render: firms => rankCells(firms, f => f.minTradingDays,
+        v => v === 0 ? '<span class="bool-yes">None</span>' : `<span class="${v >= 5 ? 'bool-no' : 'bool-mid'}">${v} days</span>`,
+        'lower', v => '')
+    },
+    {
+      label: 'News Trading', sub: 'Allowed during events',
+      render: firms => firms.map(f => cell(
+        f.newsTrading
+          ? '<span class="bool-yes">✓ Allowed</span>'
+          : '<span class="bool-no">✗ Banned</span>',
+        f.newsTrading ? '' : 'Banned within 2 min of major events'
+      ))
+    },
+    {
+      label: 'Weekend Holding', sub: 'Hold positions over weekend',
+      render: firms => firms.map(f => cell(
+        f.weekendHolding
+          ? '<span class="bool-yes">✓ Allowed</span>'
+          : '<span class="bool-no">✗ Not allowed</span>',
+        f.weekendHolding ? '' : 'Must close all positions by Friday'
+      ))
+    },
+    {
+      label: 'EAs / Automation', sub: 'Automated trading tools',
+      render: firms => firms.map(f => cell(
+        f.eaAllowed
+          ? '<span class="bool-yes">✓ Allowed</span>'
+          : '<span class="bool-no">✗ Banned</span>',
+        ''
+      ))
+    },
+
+    { section: 'HIDDEN RULES' },
+    {
+      label: 'Consistency Rule', sub: 'Single day profit cap',
+      render: firms => firms.map(f => cell(
+        f.consistencyRule
+          ? '<span class="bool-no">✗ Yes — 30% cap</span>'
+          : '<span class="bool-yes">✓ None</span>',
+        f.consistencyRule ? 'No single day > 30% of total profit' : ''
+      ))
+    },
+    {
+      label: 'Scaling Plan', sub: 'Funded contract restrictions',
+      render: firms => firms.map(f => cell(
+        f.scalingPlan
+          ? '<span class="bool-no">✗ Yes — ramp up required</span>'
+          : '<span class="bool-yes">✓ No scaling plan</span>',
+        ''
+      ))
+    },
+    {
+      label: 'Active Days Rule', sub: 'Must trade minimum days',
+      render: firms => firms.map(f => cell(
+        f.activeTradingDays
+          ? `<span class="bool-no">✗ Required (${f.minTradingDays} days)</span>`
+          : '<span class="bool-yes">✓ No requirement</span>',
+        ''
+      ))
+    },
+    {
+      label: 'Gotcha Rules', sub: 'Hidden / easy to miss',
+      render: firms => firms.map(f => {
+        const alerts = f.hiddenRules.map(r =>
+          `<div class="hidden-rule"><span class="hr-icon">⚠</span><span>${r.text}</span></div>`
+        ).join('');
+        return `<td class="val-cell">${alerts || '<span class="bool-yes">No major hidden rules found</span>'}</td>`;
+      })
+    },
+
+    { section: 'PAYOUTS' },
+    {
+      label: 'Payout Frequency', sub: '',
+      render: firms => firms.map(f => cell(
+        `<span class="${f.payoutFrequency === 'Weekly' ? 'bool-yes' : 'bool-mid'}">${f.payoutFrequency}</span>`,
+        ''
+      ))
+    },
+    {
+      label: 'Minimum Payout', sub: '',
+      render: firms => rankCells(firms, f => f.payoutMin,
+        v => `$${v}`, 'lower', v => '')
+    },
+    {
+      label: 'Payout Junction', sub: 'Verified paying',
+      render: firms => firms.map(f => cell(
+        f.payoutJunction
+          ? '<span class="bool-yes">✓ Verified</span>'
+          : '<span class="bool-no">✗ Not listed</span>',
+        f.payoutJunction ? 'Confirmed payout history' : 'Use caution — unverified'
+      ))
+    },
+  ];
+
+  // Build rows
+  ROWS.forEach(row => {
+    if (row.section) {
+      const tr = document.createElement('tr');
+      tr.className = 'section-row';
+      const td = document.createElement('td');
+      td.colSpan = firms.length + 1;
+      td.textContent = row.section;
+      tr.appendChild(td);
+      body.appendChild(tr);
+      return;
+    }
+
+    const tr = document.createElement('tr');
+    const labelTd = document.createElement('td');
+    labelTd.className = 'row-label';
+    labelTd.innerHTML = `<div class="rl-name">${row.label}</div>${row.sub ? `<div class="rl-sub">${row.sub}</div>` : ''}`;
+    tr.appendChild(labelTd);
+
+    const cells = row.render(firms);
+    if (typeof cells[0] === 'string' && cells[0].startsWith('<td')) {
+      cells.forEach(c => tr.insertAdjacentHTML('beforeend', c));
+    } else {
+      cells.forEach(c => tr.insertAdjacentHTML('beforeend', c));
+    }
+
+    body.appendChild(tr);
+  });
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────
+function cell(main, sub, cls = '') {
+  return `<td class="val-cell ${cls}">
+    <div class="val-main">${main}</div>
+    ${sub ? `<div class="val-sub">${sub}</div>` : ''}
+  </td>`;
+}
+
+function rankCells(firms, getter, formatter, direction, subFn) {
+  const vals = firms.map(getter);
+  const sorted = [...new Set(vals)].sort((a,b) => direction === 'lower' ? a-b : b-a);
+  return firms.map(f => {
+    const v = getter(f);
+    let cls = '';
+    if (sorted.length > 1) {
+      if (v === sorted[0]) cls = 'best';
+      else if (v === sorted[sorted.length-1]) cls = 'worst';
+      else cls = 'mid';
+    }
+    return cell(`<span>${formatter(v)}</span>`, subFn(v), cls);
+  });
+}
+
+function trustBadge(trust) {
+  if (trust === 'verified') return '<span class="badge badge-verified">✓ Verified</span>';
+  if (trust === 'caution')  return '<span class="badge badge-caution">⚠ Caution</span>';
+  return '<span class="badge badge-scam">✗ Flagged</span>';
+}
+
+// ─── Summary cards ────────────────────────────────────────────────────────
+function buildSummary(firms) {
+  const row = document.getElementById('summaryRow');
+  row.innerHTML = '';
+  row.style.gridTemplateColumns = `repeat(${firms.length}, 1fr)`;
+
+  firms.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+    card.innerHTML = `
+      <div class="sc-firm">${trustBadge(f.trust)} ${f.type}</div>
+      <div class="sc-name">${f.name}</div>
+      <div class="sc-verdict">${f.verdict}</div>
+      <div class="sc-pros-cons">
+        <div class="sc-pros">
+          <h4>Pros</h4>
+          <ul>${f.pros.map(p => `<li>${p}</li>`).join('')}</ul>
+        </div>
+        <div class="sc-cons">
+          <h4>Cons</h4>
+          <ul>${f.cons.map(c => `<li>${c}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <button class="load-btn" onclick="loadFirmToDashboard('${f.id}')">Load rules to dashboard →</button>
+    `;
+    row.appendChild(card);
+  });
+}
+
+function loadFirmToDashboard(id) {
+  const f = FIRMS.find(x => x.id === id);
+  if (!f) return;
+  const account = {
+    name: f.name, size: 50000,
+    dailyDD: f.dailyDD, maxTrailingDD: f.maxDD,
+    profitTarget: f.profitTarget,
+    balance: 50000, highWaterMark: 50000, todayLoss: 0
+  };
+  localStorage.setItem('account',    JSON.stringify(account));
+  localStorage.setItem('trades',     JSON.stringify([]));
+  localStorage.setItem('equityData', JSON.stringify([50000]));
+  window.location.href = 'index.html';
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+populateDropdowns();
+</script>
+
+</body>
+</html>

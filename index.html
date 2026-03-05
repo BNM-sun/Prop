@@ -3,168 +3,1080 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prop Firm Risk Dashboard</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>PropRisk Sage — Know the Rules Before You Break Them</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #04010a;
+      --bg2:      #07020f;
+      --surface:  #0d0520;
+      --surface2: #120630;
+      --border:   #1e0840;
+      --purple:   #7c20e8;
+      --violet:   #a855f7;
+      --pink:     #e040fb;
+      --glow:     rgba(124,32,232,0.35);
+      --text:     #f0e8ff;
+      --muted:    #7a6090;
+      --dim:      #3a2860;
+      --green:    #00ffaa;
+      --red:      #ff4466;
+      --yellow:   #ffcc00;
+      --display:  'Syne', sans-serif;
+      --mono:     'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--display);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ── Noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+
+    /* ── Grid background ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124,32,232,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,32,232,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    section, header, footer, nav { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 60px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(4,1,10,0.85);
+      backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: var(--mono); font-size: 1.1rem; font-weight: 500;
+      color: var(--violet); letter-spacing: 3px; text-transform: uppercase;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--pink); }
+
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+      text-decoration: none; letter-spacing: 1px; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 500;
+      padding: 9px 20px; background: transparent;
+      border: 1px solid var(--purple); color: var(--violet);
+      border-radius: 4px; text-decoration: none; letter-spacing: 1px;
+      text-transform: uppercase; transition: all 0.2s;
+    }
+    .nav-cta:hover {
+      background: var(--purple); color: white;
+      box-shadow: 0 0 20px var(--glow);
+    }
+
+    /* ── TICKER ── */
+    .ticker-wrap {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0; overflow: hidden;
+    }
+    .ticker {
+      display: flex; gap: 0;
+      animation: ticker 40s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 0.72rem;
+      padding: 0 32px; color: var(--muted);
+      border-right: 1px solid var(--border);
+    }
+    .ticker-item .firm { color: var(--violet); font-weight: 500; }
+    .ticker-item .rule { color: var(--text); }
+    .ticker-item .dot  {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--pink); flex-shrink: 0;
+      animation: blink 2s infinite;
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 88vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 80px 40px;
+      position: relative;
+    }
+
+    .hero-glow {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -60%);
+      width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,32,232,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--violet);
+      border: 1px solid var(--dim); border-radius: 20px;
+      padding: 6px 16px; margin-bottom: 36px;
+      background: rgba(124,32,232,0.08);
+      animation: fadeUp 0.8s ease both;
+    }
+    .hero-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); animation: blink 1.5s infinite;
+    }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800; line-height: 1.05;
+      letter-spacing: -2px; margin-bottom: 28px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(135deg, var(--violet), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-family: var(--mono); font-size: clamp(0.9rem, 2vw, 1.05rem);
+      color: var(--muted); max-width: 560px; line-height: 1.7;
+      margin-bottom: 48px;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 32px; font-family: var(--display); font-size: 0.95rem;
+      font-weight: 700; text-decoration: none; border-radius: 6px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white; border: none; cursor: pointer;
+      box-shadow: 0 0 40px rgba(124,32,232,0.4);
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 60px rgba(124,32,232,0.6);
+    }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 32px; font-family: var(--display); font-size: 0.95rem;
+      font-weight: 600; text-decoration: none; border-radius: 6px;
+      background: transparent; color: var(--text);
+      border: 1px solid var(--dim); cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .btn-secondary:hover {
+      border-color: var(--violet); color: var(--violet);
+      background: rgba(124,32,232,0.08);
+    }
+
+    .hero-stat-row {
+      display: flex; gap: 48px; margin-top: 72px; flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+    .hero-stat .num {
+      font-size: 2rem; font-weight: 800; color: var(--violet);
+      font-family: var(--mono);
+    }
+    .hero-stat .label {
+      font-family: var(--mono); font-size: 0.72rem;
+      color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PROBLEM SECTION ── */
+    .section { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+
+    .section-label {
+      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--violet); margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800;
+      line-height: 1.1; letter-spacing: -1px; margin-bottom: 20px;
+    }
+
+    .section-sub {
+      font-family: var(--mono); font-size: 0.95rem;
+      color: var(--muted); line-height: 1.7; max-width: 560px;
+    }
+
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 60px;
+    }
+
+    .problem-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .problem-card:hover {
+      border-color: var(--dim); transform: translateY(-4px);
+    }
+    .problem-card .icon {
+      font-size: 1.8rem; margin-bottom: 16px; display: block;
+    }
+    .problem-card h3 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 10px; color: var(--text);
+    }
+    .problem-card p {
+      font-family: var(--mono); font-size: 0.82rem;
+      color: var(--muted); line-height: 1.65;
+    }
+    .problem-card .tag {
+      display: inline-block; margin-top: 14px;
+      font-family: var(--mono); font-size: 0.68rem;
+      padding: 4px 10px; border-radius: 3px; letter-spacing: 1px;
+      text-transform: uppercase; font-weight: 500;
+    }
+    .tag-red    { background: rgba(255,68,102,0.12); color: var(--red);    border: 1px solid rgba(255,68,102,0.3); }
+    .tag-yellow { background: rgba(255,204,0,0.10);  color: var(--yellow); border: 1px solid rgba(255,204,0,0.3); }
+
+    /* ── FEATURES ── */
+    .features-wrap {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 100px 0;
+    }
+
+    .features-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px; align-items: center;
+      max-width: 1200px; margin: 0 auto; padding: 0 60px;
+    }
+    .features-grid.reverse { direction: rtl; }
+    .features-grid.reverse > * { direction: ltr; }
+
+    .feature-visual {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px;
+      position: relative; overflow: hidden;
+    }
+    .feature-visual::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+    }
+
+    .feature-text .tag-label {
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--violet); margin-bottom: 16px;
+      display: block;
+    }
+    .feature-text h2 {
+      font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px;
+      margin-bottom: 16px; line-height: 1.15;
+    }
+    .feature-text p {
+      font-family: var(--mono); font-size: 0.88rem;
+      color: var(--muted); line-height: 1.7; margin-bottom: 24px;
+    }
+
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .feature-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-family: var(--mono); font-size: 0.82rem; color: var(--muted);
+    }
+    .feature-list li::before {
+      content: '→'; color: var(--violet); flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* Mock UI elements */
+    .mock-firm-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      font-family: var(--mono); font-size: 0.8rem;
+    }
+    .mock-firm-row .firm-name { color: var(--text); font-weight: 500; }
+    .mock-badge {
+      font-size: 0.65rem; padding: 3px 8px; border-radius: 3px;
+      font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .badge-verified { background: rgba(0,255,170,0.1); color: var(--green); border: 1px solid rgba(0,255,170,0.3); }
+    .badge-caution  { background: rgba(255,204,0,0.1);  color: var(--yellow); border: 1px solid rgba(255,204,0,0.3); }
+    .badge-scam     { background: rgba(255,68,102,0.1); color: var(--red);    border: 1px solid rgba(255,68,102,0.3); }
+
+    .mock-rule-alert {
+      background: rgba(255,204,0,0.06); border: 1px solid rgba(255,204,0,0.2);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 8px;
+    }
+    .mock-rule-alert .alert-firm {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--yellow);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .mock-rule-alert .alert-text {
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+      line-height: 1.5;
+    }
+    .mock-rule-alert .alert-text strong { color: var(--text); }
+
+    .mock-calc {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px;
+    }
+    .mock-calc-row {
+      display: flex; justify-content: space-between;
+      font-family: var(--mono); font-size: 0.78rem;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .mock-calc-row:last-child { border-bottom: none; }
+    .mock-calc-row .val { color: var(--violet); font-weight: 500; }
+    .mock-calc-row .val.green { color: var(--green); }
+    .mock-calc-row .val.red   { color: var(--red); }
+
+    /* ── HIDDEN RULES ── */
+    .rules-section {
+      background: var(--surface); padding: 100px 60px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .rules-inner { max-width: 1200px; margin: 0 auto; }
+    .rules-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px; margin-top: 60px;
+    }
+    .rule-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 22px 24px;
+      transition: border-color 0.3s;
+    }
+    .rule-card:hover { border-color: rgba(255,204,0,0.4); }
+    .rule-card .rc-firm {
+      font-family: var(--mono); font-size: 0.68rem; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--violet); margin-bottom: 10px;
+    }
+    .rule-card .rc-rule {
+      font-size: 0.9rem; font-weight: 600; color: var(--text);
+      margin-bottom: 10px; line-height: 1.4;
+    }
+    .rule-card .rc-why {
+      font-family: var(--mono); font-size: 0.78rem;
+      color: var(--muted); line-height: 1.6;
+    }
+    .rule-card .rc-tag {
+      display: inline-block; margin-top: 12px;
+      font-family: var(--mono); font-size: 0.65rem;
+      padding: 3px 9px; border-radius: 3px; letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── PRICING ── */
+    .pricing-section { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-top: 60px; align-items: start;
+    }
+    .price-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 36px 32px; position: relative;
+      transition: transform 0.3s;
+    }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card.featured {
+      border-color: var(--purple);
+      box-shadow: 0 0 40px rgba(124,32,232,0.2);
+    }
+    .price-card.featured::before {
+      content: 'MOST POPULAR'; position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white; padding: 4px 14px; border-radius: 20px;
+    }
+    .price-card h3 {
+      font-family: var(--mono); font-size: 0.75rem; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+    }
+    .price-amount {
+      font-size: 3rem; font-weight: 800; color: var(--text);
+      font-family: var(--mono); letter-spacing: -2px;
+    }
+    .price-amount span { font-size: 1.1rem; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+    .price-desc {
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+      margin: 14px 0 28px; line-height: 1.6;
+    }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .price-features li {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 0.8rem; color: var(--muted);
+    }
+    .price-features li::before { content: '✓'; color: var(--green); font-weight: 700; }
+    .price-features li.off { opacity: 0.35; }
+    .price-features li.off::before { content: '✗'; color: var(--muted); }
+
+    .btn-price {
+      display: block; width: 100%; text-align: center;
+      padding: 13px; border-radius: 6px; font-family: var(--display);
+      font-size: 0.9rem; font-weight: 700; text-decoration: none;
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .btn-price-free {
+      background: transparent; border: 1px solid var(--dim); color: var(--text);
+    }
+    .btn-price-free:hover { border-color: var(--violet); color: var(--violet); }
+    .btn-price-pro {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white; border: none;
+      box-shadow: 0 0 30px rgba(124,32,232,0.35);
+    }
+    .btn-price-pro:hover { box-shadow: 0 0 50px rgba(124,32,232,0.55); transform: translateY(-1px); }
+
+    /* ── ORIGIN STORY ── */
+    .story-section {
+      background: var(--bg2); padding: 100px 60px;
+      border-top: 1px solid var(--border);
+    }
+    .story-inner {
+      max-width: 700px; margin: 0 auto; text-align: center;
+    }
+    .story-inner blockquote {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600;
+      line-height: 1.6; color: var(--text); margin: 32px 0;
+      font-style: italic;
+    }
+    .story-inner blockquote em { color: var(--violet); font-style: normal; }
+    .story-inner .author {
+      font-family: var(--mono); font-size: 0.78rem;
+      color: var(--muted); letter-spacing: 1px;
+    }
+
+    /* ── CTA BANNER ── */
+    .cta-section {
+      padding: 100px 60px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(124,32,232,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800;
+      letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.1;
+    }
+    .cta-section p {
+      font-family: var(--mono); font-size: 0.95rem; color: var(--muted);
+      margin-bottom: 40px; max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+
+
+    /* ── Kit Email Section ── */
+    .email-section {
+      padding: 100px 60px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .email-section::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px; height: 400px;
+      background: radial-gradient(ellipse, rgba(224,64,251,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .email-inner {
+      max-width: 640px; margin: 0 auto; text-align: center;
+      position: relative; z-index: 1;
+    }
+    .email-inner .section-label { text-align: center; }
+    .email-inner h2 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800;
+      letter-spacing: -1px; margin-bottom: 16px; line-height: 1.15;
+    }
+    .email-inner p {
+      font-family: var(--mono); font-size: 0.88rem;
+      color: var(--muted); line-height: 1.7; margin-bottom: 36px;
+    }
+    .email-perks {
+      display: flex; justify-content: center; gap: 28px;
+      flex-wrap: wrap; margin-bottom: 36px;
+    }
+    .email-perk {
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    }
+    .email-perk::before {
+      content: '✓'; color: var(--green); font-weight: 700;
+    }
+    /* Override Kit form styles to match theme */
+    .formkit-form {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+    }
+    .formkit-form * { font-family: 'DM Mono', monospace !important; }
+    .formkit-field input[type="email"],
+    .formkit-input {
+      background: var(--bg) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 7px !important;
+      color: var(--text) !important;
+      padding: 13px 16px !important;
+      font-size: 0.88rem !important;
+    }
+    .formkit-field input[type="email"]:focus,
+    .formkit-input:focus {
+      border-color: var(--violet) !important;
+      outline: none !important;
+    }
+    .formkit-submit, [data-element="submit"] button {
+      background: linear-gradient(135deg, #7c20e8, #e040fb) !important;
+      border: none !important;
+      border-radius: 7px !important;
+      color: white !important;
+      font-weight: 700 !important;
+      padding: 13px 28px !important;
+      font-size: 0.88rem !important;
+      cursor: pointer !important;
+      box-shadow: 0 0 24px rgba(124,32,232,0.35) !important;
+      transition: box-shadow 0.2s !important;
+      letter-spacing: 0.5px !important;
+    }
+    .formkit-submit:hover, [data-element="submit"] button:hover {
+      box-shadow: 0 0 40px rgba(124,32,232,0.55) !important;
+    }
+    .formkit-guarantee, .formkit-powered-by-convertkit-container {
+      color: var(--muted) !important;
+      font-size: 0.72rem !important;
+      opacity: 0.6;
+    }
+
+    /* ── Sticky bottom bar ── */
+    .sticky-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(13,5,32,0.97);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      padding: 14px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; flex-wrap: wrap;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    .sticky-bar.visible { transform: translateY(0); }
+    .sticky-bar-text {
+      font-family: var(--mono); font-size: 0.82rem; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sticky-bar-text span { color: var(--violet); font-weight: 600; }
+    .sticky-bar-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,255,170,0.4); }
+      50%      { box-shadow: 0 0 0 6px rgba(0,255,170,0); }
+    }
+    .sticky-bar-cta {
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .sticky-bar-dismiss {
+      font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+      background: none; border: none; cursor: pointer; letter-spacing: 1px;
+      text-transform: uppercase; transition: color 0.2s;
+    }
+    .sticky-bar-dismiss:hover { color: var(--text); }
+    .sticky-bar .formkit-form { display: flex !important; gap: 10px !important; align-items: center !important; }
+    .sticky-bar .formkit-fields { display: flex !important; gap: 10px !important; margin: 0 !important; }
+    .sticky-bar .formkit-field { margin: 0 !important; }
+
+    @media (max-width: 700px) {
+      .email-section { padding: 60px 24px; }
+      .email-perks { gap: 16px; }
+      .sticky-bar { padding: 14px 20px; }
+      .sticky-bar-text { font-size: 0.75rem; }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .footer-logo {
+      font-family: var(--mono); font-size: 0.9rem; color: var(--violet);
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+    .footer-links { display: flex; gap: 28px; }
+    .footer-links a {
+      font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+      text-decoration: none; letter-spacing: 1px; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy {
+      font-family: var(--mono); font-size: 0.72rem; color: var(--dim);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 18px 24px; }
+      .nav-links { display: none; }
+      .section, .pricing-section { padding: 60px 24px; }
+      .features-wrap { padding: 60px 0; }
+      .features-grid { grid-template-columns: 1fr; padding: 0 24px; gap: 40px; }
+      .features-grid.reverse { direction: ltr; }
+      .rules-section { padding: 60px 24px; }
+      .story-section, .cta-section { padding: 60px 24px; }
+      footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <h1>Prop Firm Risk Dashboard</h1>
-  <nav>
-    <a href="index.html" class="active">Dashboard</a>
-    <a href="accounts.html">Accounts</a>
-    <a href="trades.html">Trades</a>
-    <a href="analytics.html">Analytics</a>
-    <a href="settings.html">Settings</a>
-  </nav>
-</header>
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">PropRisk <span>Sage</span></a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#rules">Hidden Rules</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#signup">Get Alerts</a>
+    <a href="dashboard.html">Dashboard</a>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+      <a href="auth.html" class="nav-cta" style="background:transparent;color:#a855f7;">Sign In</a>
+      <a href="auth.html" class="nav-cta" style="background:linear-gradient(135deg,#7c20e8,#e040fb);border-color:transparent;color:white;">Get Started Free</a>
+    </div>
+</nav>
 
-<!-- BREACH ALERT -->
-<div id="breachAlert">
-  🚨 DAILY DRAWDOWN LIMIT REACHED — STOP TRADING IMMEDIATELY 🚨
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker"></div>
 </div>
 
-<!-- CONFIRM DIALOG -->
-<div id="confirmOverlay">
-  <div id="confirmBox">
-    <p id="confirmMsg">Are you sure?</p>
-    <div class="btn-row">
-      <button id="confirmYes">Yes, proceed</button>
-      <button class="btn-cancel" id="confirmNo">Cancel</button>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">Live rule tracking for funded traders</div>
+
+  <h1 class="hero-title">
+    Know the Rules<br>
+    <span class="line2">Before You Break Them.</span>
+  </h1>
+
+  <p class="hero-sub">
+    PropRisk Sage tracks prop firm rules, flags the hidden ones, and keeps your risk in check — so you don't lose a funded account on a technicality.
+  </p>
+
+  <div class="hero-actions">
+    <a href="auth.html" class="btn-primary">
+      Open Free Dashboard →
+    </a>
+    <a href="#features" class="btn-secondary">
+      See How It Works
+    </a>
+  </div>
+
+  <div class="hero-stat-row">
+    <div class="hero-stat">
+      <div class="num">15+</div>
+      <div class="label">Prop Firms Tracked</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">40+</div>
+      <div class="label">Hidden Rules Flagged</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">$0</div>
+      <div class="label">To Start</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">∞</div>
+      <div class="label">Challenge Fees Saved</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="section" id="problem">
+  <p class="section-label">The Problem</p>
+  <h2 class="section-title">Prop firms make the rules complex on purpose.</h2>
+  <p class="section-sub">Most traders fail their challenge not because they can't trade — but because they broke a rule they didn't fully understand.</p>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <span class="icon">📋</span>
+      <h3>Rules buried in fine print</h3>
+      <p>Consistency rules, scaling plans, weekend restrictions — firms bury these deep in their ToS where most traders never look until it's too late.</p>
+      <span class="tag tag-red">Account Failed</span>
+    </div>
+    <div class="problem-card">
+      <span class="icon">💸</span>
+      <h3>Challenge fees aren't cheap</h3>
+      <p>A $50K challenge costs $100–$400. In countries where the dollar is strong, that's a serious investment. One mistake and it's gone.</p>
+      <span class="tag tag-red">Money Lost</span>
+    </div>
+    <div class="problem-card">
+      <span class="icon">🔄</span>
+      <h3>Rules change without warning</h3>
+      <p>Firms update their rules quietly. Traders relying on outdated information get caught off guard mid-challenge with no recourse.</p>
+      <span class="tag tag-yellow">Rule Changed</span>
+    </div>
+    <div class="problem-card">
+      <span class="icon">🚨</span>
+      <h3>Scam firms are everywhere</h3>
+      <p>Not every prop firm pays out. Some have rules designed so that almost nobody qualifies. Knowing which firms are legitimate is half the battle.</p>
+      <span class="tag tag-red">Proceed With Caution</span>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="features-wrap" id="features">
+
+  <!-- Feature 1 -->
+  <div class="features-grid" style="margin-bottom: 80px;">
+    <div class="feature-visual">
+      <div class="mock-firm-row">
+        <span class="firm-name">Apex Trader Funding</span>
+        <span class="mock-badge badge-verified">✓ Verified</span>
+      </div>
+      <div class="mock-firm-row">
+        <span class="firm-name">Topstep</span>
+        <span class="mock-badge badge-verified">✓ Verified</span>
+      </div>
+      <div class="mock-firm-row">
+        <span class="firm-name">FTMO</span>
+        <span class="mock-badge badge-verified">✓ Verified</span>
+      </div>
+      <div class="mock-firm-row">
+        <span class="firm-name">ShadyPropCo</span>
+        <span class="mock-badge badge-caution">⚠ Caution</span>
+      </div>
+      <div class="mock-firm-row">
+        <span class="firm-name">QuickFundedFX</span>
+        <span class="mock-badge badge-scam">✗ Flagged</span>
+      </div>
+    </div>
+    <div class="feature-text">
+      <span class="tag-label">Feature 01 — Firm Verification</span>
+      <h2>Know which firms actually pay.</h2>
+      <p>Every firm in PropRisk Sage is cross-referenced against Payout Junction and community reports. Verified firms are confirmed paying. Flagged ones have known issues.</p>
+      <ul class="feature-list">
+        <li>Payout Junction verified badge</li>
+        <li>Community-reported scam flags</li>
+        <li>Proceed with caution warnings</li>
+        <li>Updated as new reports come in</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Feature 2 -->
+  <div class="features-grid reverse" style="margin-bottom: 80px;">
+    <div class="feature-visual">
+      <div class="mock-rule-alert">
+        <div class="alert-firm">⚠ Apex Trader Funding — Hidden Rule</div>
+        <div class="alert-text"><strong>Consistency Rule:</strong> No single trading day can account for more than 30% of your total profit. Violating this can void your payout.</div>
+      </div>
+      <div class="mock-rule-alert" style="border-color: rgba(255,68,102,0.2); background: rgba(255,68,102,0.04);">
+        <div class="alert-firm" style="color: var(--red);">🚫 Topstep — Restriction</div>
+        <div class="alert-text"><strong>News Trading Ban:</strong> Opening positions within 2 minutes of high-impact news events is prohibited and grounds for account termination.</div>
+      </div>
+      <div class="mock-rule-alert">
+        <div class="alert-firm">⚠ FTMO — Easy Miss</div>
+        <div class="alert-text"><strong>Minimum Trading Days:</strong> You must trade on at least 4 different calendar days. Many traders hit the profit target in 2 days and stop.</div>
+      </div>
+    </div>
+    <div class="feature-text">
+      <span class="tag-label">Feature 02 — Hidden Rules</span>
+      <h2>The rules they don't advertise.</h2>
+      <p>PropRisk Sage surfaces the non-obvious rules that trip up even experienced traders — consistency requirements, news bans, scaling restrictions, and minimum day rules.</p>
+      <ul class="feature-list">
+        <li>Consistency rule alerts</li>
+        <li>News trading restrictions</li>
+        <li>Weekend holding warnings</li>
+        <li>Scaling plan requirements</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Feature 3 -->
+  <div class="features-grid">
+    <div class="feature-visual">
+      <div class="mock-calc">
+        <div class="mock-calc-row"><span>Account Size</span><span class="val">$50,000</span></div>
+        <div class="mock-calc-row"><span>Daily DD Limit</span><span class="val red">$2,500</span></div>
+        <div class="mock-calc-row"><span>Loss Today</span><span class="val red">$1,800</span></div>
+        <div class="mock-calc-row"><span>Remaining Risk</span><span class="val" style="color:var(--yellow)">$700</span></div>
+        <div class="mock-calc-row"><span>Position Size (MNQ)</span><span class="val green">3 contracts</span></div>
+        <div class="mock-calc-row"><span>Profit Progress</span><span class="val green">64%</span></div>
+      </div>
+    </div>
+    <div class="feature-text">
+      <span class="tag-label">Feature 03 — Risk Dashboard</span>
+      <h2>Real-time risk tracking built for challenges.</h2>
+      <p>Track your drawdown, calculate position sizes, log trades, and monitor your progress toward the profit target — all in one place with your firm's exact rules loaded in.</p>
+      <ul class="feature-list">
+        <li>Live drawdown tracker with breach alerts</li>
+        <li>Position size calculator per instrument</li>
+        <li>Trade logger with full P&L history</li>
+        <li>Equity curve and performance stats</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- HIDDEN RULES SECTION -->
+<div class="rules-section" id="rules">
+  <div class="rules-inner">
+    <p class="section-label">Hidden Rules Database</p>
+    <h2 class="section-title">Rules that have killed funded accounts.</h2>
+    <p class="section-sub" style="margin-bottom: 0;">Real rules from real firms that most traders only discover after they've already violated them.</p>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rc-firm">Apex Trader Funding</div>
+        <div class="rc-rule">Consistency Rule — 30% Single Day Cap</div>
+        <div class="rc-why">No single trading day can represent more than 30% of your total profits. Hit a big day early and you may be locked out of passing.</div>
+        <span class="rc-tag tag-yellow">Easy to miss</span>
+      </div>
+      <div class="rule-card">
+        <div class="rc-firm">Topstep</div>
+        <div class="rc-rule">No Trading During High-Impact News</div>
+        <div class="rc-why">Entering positions within 2 minutes before or after major news events (NFP, FOMC) is prohibited. Accounts have been terminated for this.</div>
+        <span class="rc-tag tag-red">Account termination</span>
+      </div>
+      <div class="rule-card">
+        <div class="rc-firm">FTMO</div>
+        <div class="rc-rule">Minimum 4 Trading Days Required</div>
+        <div class="rc-why">Even if you hit the profit target in 2 days, you cannot pass the evaluation without trading on at least 4 separate calendar days.</div>
+        <span class="rc-tag tag-yellow">Easy to miss</span>
+      </div>
+      <div class="rule-card">
+        <div class="rc-firm">MyFundedFutures</div>
+        <div class="rc-rule">No Holding Positions Over Weekend</div>
+        <div class="rc-why">All positions must be closed before market close on Friday. Holding over the weekend — even accidentally — violates the account terms.</div>
+        <span class="rc-tag tag-red">Account failed</span>
+      </div>
+      <div class="rule-card">
+        <div class="rc-firm">Apex Trader Funding</div>
+        <div class="rc-rule">Trailing Drawdown Locks at High Water Mark</div>
+        <div class="rc-why">The trailing drawdown tracks your peak balance, not your starting balance. A strong day actually makes your drawdown limit harder to maintain.</div>
+        <span class="rc-tag tag-yellow">Misunderstood</span>
+      </div>
+      <div class="rule-card">
+        <div class="rc-firm">Topstep</div>
+        <div class="rc-rule">Scaling Plan on Funded Accounts</div>
+        <div class="rc-why">Funded accounts have a scaling plan — you cannot jump straight to trading maximum contracts. Many traders don't read this until they're already funded.</div>
+        <span class="rc-tag tag-yellow">Easy to miss</span>
+      </div>
     </div>
   </div>
 </div>
 
-<main>
+<!-- PRICING -->
+<div class="pricing-section" id="pricing">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-title">Start free. Upgrade when it saves you money.</h2>
+  <p class="section-sub">One failed challenge costs more than a year of PropRisk Sage Pro.</p>
 
-  <section class="card">
-    <h2>Account Setup</h2>
-    <form id="accountForm">
-      <label for="accountName">Account Name</label>
-      <input type="text" id="accountName" name="accountName" placeholder="e.g. Apex #1" required>
-      <label for="accountSize">Account Size ($)</label>
-      <input type="number" id="accountSize" name="accountSize" min="1000" step="100" required>
-      <label for="dailyDrawdown">Daily Drawdown (%)</label>
-      <input type="number" id="dailyDrawdown" name="dailyDrawdown" min="1" max="10" step="0.1" required>
-      <label for="maxTrailingDrawdown">Max Trailing Drawdown (%)</label>
-      <input type="number" id="maxTrailingDrawdown" name="maxTrailingDrawdown" min="5" max="20" step="0.1" required>
-      <label for="profitTarget">Profit Target ($)</label>
-      <input type="number" id="profitTarget" name="profitTarget" min="100" step="100" required>
-      <button type="submit">Add / Update Account</button>
-      <div class="error" id="accountError"></div>
-    </form>
-  </section>
-
-  <section class="card">
-    <h2>Risk Calculator</h2>
-    <form id="riskForm">
-      <label for="instrument">Instrument</label>
-      <select id="instrument" name="instrument" required>
-        <option value="">Select...</option>
-        <option value="MNQ">MNQ (Micro Nasdaq, $2/pt)</option>
-        <option value="NQ">NQ (Nasdaq, $20/pt)</option>
-        <option value="ES">ES (S&amp;P, $50/pt)</option>
-        <option value="MES">MES (Micro S&amp;P, $5/pt)</option>
-      </select>
-      <label for="entryPrice">Entry Price</label>
-      <input type="number" id="entryPrice" name="entryPrice" step="0.25" min="0" required>
-      <label for="stopLoss">Stop Loss</label>
-      <input type="number" id="stopLoss" name="stopLoss" step="0.25" min="0" required>
-      <label for="riskPercent">Risk %</label>
-      <input type="number" id="riskPercent" name="riskPercent" step="0.1" min="0.1" max="5" required>
-      <button type="submit">Calculate Risk</button>
-    </form>
-    <div class="output" aria-live="polite">
-      <p>Position Size: <output id="posSize">--</output> contracts</p>
-      <p>Risk Per Trade: <output id="riskDollars">--</output></p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <h3>Free</h3>
+      <div class="price-amount">$0<span>/mo</span></div>
+      <p class="price-desc">Everything you need to start tracking your challenge and staying within the rules.</p>
+      <ul class="price-features">
+        <li>Risk calculator</li>
+        <li>Trade logger & history</li>
+        <li>Drawdown tracker</li>
+        <li>Equity curve</li>
+        <li>5 firm presets</li>
+        <li class="off">Hidden rules alerts</li>
+        <li class="off">Firm comparison tool</li>
+        <li class="off">Rule change notifications</li>
+      </ul>
+      <a href="dashboard.html" class="btn-price btn-price-free">Get Started Free</a>
     </div>
-  </section>
 
-  <section class="card">
-    <h2>Daily Drawdown Tracker</h2>
-    <p>Account Balance: $<span id="balance">50,000</span></p>
-    <p>Daily Loss Limit: $<span id="dailyLossLimit">2,500</span></p>
-    <p>Loss Today: $<span id="lossToday">0</span></p>
-    <p class="highlight" id="remainingLabel">Remaining Risk: $<span id="remainingRisk">2,500</span></p>
-  </section>
-
-  <section class="card">
-    <h2>Trade Logger</h2>
-    <form id="tradeForm">
-      <label for="tradeInstrument">Instrument</label>
-      <select id="tradeInstrument" name="tradeInstrument" required>
-        <option value="">Select...</option>
-        <option value="MNQ">MNQ</option>
-        <option value="NQ">NQ</option>
-        <option value="ES">ES</option>
-        <option value="MES">MES</option>
-      </select>
-      <label for="direction">Direction</label>
-      <select id="direction" name="direction" required>
-        <option value="long">Long</option>
-        <option value="short">Short</option>
-      </select>
-      <label for="entry">Entry</label>
-      <input type="number" id="entry" name="entry" step="0.25" min="0" required>
-      <label for="exit">Exit</label>
-      <input type="number" id="exit" name="exit" step="0.25" min="0" required>
-      <label for="contracts">Contracts</label>
-      <input type="number" id="contracts" name="contracts" min="1" step="1" required>
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" placeholder="Optional trade notes..."></textarea>
-      <button type="submit">Log Trade</button>
-      <div class="error" id="tradeError"></div>
-    </form>
-  </section>
-
-  <section class="card">
-    <h2>Performance Statistics</h2>
-    <ul>
-      <li>Total Trades: <span id="totalTrades">0</span></li>
-      <li>Win Rate: <span id="winRate">0%</span></li>
-      <li>Average R: <span id="avgR">--</span></li>
-      <li>Profit Factor: <span id="profitFactor">--</span></li>
-    </ul>
-  </section>
-
-  <section class="card">
-    <h2>Prop Firm Progress</h2>
-    <p>Profit Target: $<span id="target">3,000</span></p>
-    <p>Current Profit: $<span id="currentProfit">0</span></p>
-    <div class="progress-bar">
-      <div class="progress" id="progress"></div>
+    <div class="price-card featured">
+      <h3>Pro</h3>
+      <div class="price-amount">$10<span>/mo</span></div>
+      <p class="price-desc">Full access to the hidden rules database, firm comparison, and everything you need to pass and stay funded.</p>
+      <ul class="price-features">
+        <li>Everything in Free</li>
+        <li>Hidden rules alerts</li>
+        <li>Firm comparison tool</li>
+        <li>15+ verified firms</li>
+        <li>Scam & caution flags</li>
+        <li>Rule change notifications</li>
+        <li>Unlimited accounts</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="dashboard.html" class="btn-price btn-price-pro">Start Pro — $10/mo</a>
     </div>
-  </section>
+  </div>
+</div>
 
-  <section class="card">
-    <h2>Equity Curve</h2>
-    <canvas id="equityChart" height="200"></canvas>
-  </section>
+<!-- ORIGIN STORY -->
+<div class="story-section">
+  <div class="story-inner">
+    <p class="section-label" style="text-align:center;">Why We Built This</p>
+    <blockquote>
+      "Where I'm from, the dollar is so strong that a single failed challenge isn't just frustrating — it's a <em>real financial setback</em>. I spent more time researching firm rules than actually trading. So I built the tool I needed."
+    </blockquote>
+    <p class="author">— Founder, PropRisk Sage &nbsp;·&nbsp; Gaborone, Botswana</p>
+  </div>
+</div>
 
-  <section class="card full-width">
-    <h2>Trade History</h2>
-    <div id="tradeTableWrap">
-      <div class="empty-msg" id="emptyMsg">No trades logged yet.</div>
-      <table id="tradeTable" style="display:none;">
-        <thead>
-          <tr>
-            <th>#</th><th>Instrument</th><th>Direction</th>
-            <th>Entry</th><th>Exit</th><th>Contracts</th>
-            <th>P&amp;L</th><th>Notes</th><th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="tradeTableBody"></tbody>
-      </table>
+
+<!-- EMAIL SIGNUP -->
+<div class="email-section" id="signup">
+  <div class="email-inner">
+    <p class="section-label">Stay Ahead of Rule Changes</p>
+    <h2>Get notified when prop firms change their rules.</h2>
+    <p>Firms update their rules quietly — often mid-challenge. Join traders getting early alerts on rule changes, new firm reviews, and hidden gotchas before they cost you an account.</p>
+    <div class="email-perks">
+      <div class="email-perk">Rule change alerts</div>
+      <div class="email-perk">New firm reviews</div>
+      <div class="email-perk">Hidden rule warnings</div>
+      <div class="email-perk">Free forever</div>
     </div>
-  </section>
+    <script async data-uid="a7bd79eec5" src="https://proprisk-sage.kit.com/a7bd79eec5/index.js"></script>
+  </div>
+</div>
 
-</main>
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Stop losing accounts<br>to rules you didn't know existed.</h2>
+  <p>Free to use. No sign-up required. Open the dashboard and start your next challenge the right way.</p>
+  <a href="auth.html" class="btn-primary" style="display:inline-flex;">
+    Open Free Dashboard →
+  </a>
+</section>
 
+<!-- FOOTER -->
 <footer>
-  <p>Prop Firm Risk Dashboard &mdash; Journi- Built for funded traders</p>
+  <div class="footer-logo">PropRisk Sage</div>
+  <div class="footer-links">
+    <a href="#signup">Get Alerts</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="accounts.html">Accounts</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </div>
+  <div class="footer-copy">© 2025 PropRisk Sage. Built for funded traders.</div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="app.js"></script>
+<script>
+  // ── Ticker data ────────────────────────────────────────────────────────────
+  const tickerRules = [
+    { firm: 'Apex',      rule: 'Consistency Rule: single day cannot exceed 30% of total profit' },
+    { firm: 'Topstep',   rule: 'News Trading Ban: no positions within 2 min of high-impact news' },
+    { firm: 'FTMO',      rule: 'Min 4 trading days required — even if profit target is hit early' },
+    { firm: 'MFF',       rule: 'No holding positions over the weekend — must close by Friday close' },
+    { firm: 'Apex',      rule: 'Trailing drawdown locks at high water mark, not starting balance' },
+    { firm: 'Topstep',   rule: 'Funded accounts have a scaling plan — max contracts are restricted' },
+    { firm: 'FTMO',      rule: 'Max daily loss resets at midnight CET — not your local time' },
+    { firm: 'Take Profit', rule: 'Profit target must be reached with minimum 5 trading days completed' },
+    { firm: 'Bulenox',   rule: 'Trailing drawdown based on EOD balance, not intraday high' },
+    { firm: 'MFF',       rule: 'Third-party trading tools or EAs may void your account' },
+  ];
+
+  const ticker = document.getElementById('ticker');
+  // Duplicate for seamless loop
+  const allRules = [...tickerRules, ...tickerRules];
+  allRules.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'ticker-item';
+    el.innerHTML = `<div class="dot"></div><span class="firm">${r.firm}</span><span class="rule">${r.rule}</span>`;
+    ticker.appendChild(el);
+  });
+</script>
+
+
+<!-- STICKY SIGNUP BAR -->
+<div class="sticky-bar" id="stickyBar">
+  <div class="sticky-bar-text">
+    <div class="sticky-bar-dot"></div>
+    <span>Prop firm rules just changed.</span> Be the first to know next time.
+  </div>
+  <div class="sticky-bar-cta">
+    <script async data-uid="a7bd79eec5" src="https://proprisk-sage.kit.com/a7bd79eec5/index.js"></script>
+    <button class="sticky-bar-dismiss" onclick="dismissBar()">dismiss</button>
+  </div>
+</div>
+
+<script>
+  // Show sticky bar after scrolling 60% of the page
+  const bar = document.getElementById('stickyBar');
+  let dismissed = false;
+
+  window.addEventListener('scroll', () => {
+    if (dismissed) return;
+    const scrollPct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+    if (scrollPct > 0.45) {
+      bar.classList.add('visible');
+    }
+  });
+
+  function dismissBar() {
+    dismissed = true;
+    bar.classList.remove('visible');
+  }
+</script>
+
 </body>
 </html>
