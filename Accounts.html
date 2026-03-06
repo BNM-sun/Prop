@@ -7,191 +7,99 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-
 <style>
 :root {
-  --pg-bg: #04010a;
-  --pg-surface: #0d0520;
-  --pg-border: #1e0840;
-  --pg-purple: #7c20e8;
-  --pg-violet: #a855f7;
-  --pg-pink: #e040fb;
-  --pg-text: #f0e8ff;
-  --pg-muted: #7a6090;
-  --pg-mono: 'DM Mono', monospace;
-  --pg-display: 'Syne', sans-serif;
+  --pg-bg: #04010a; --pg-surface: #0d0520; --pg-border: #1e0840;
+  --pg-purple: #7c20e8; --pg-violet: #a855f7; --pg-pink: #e040fb;
+  --pg-text: #f0e8ff; --pg-muted: #7a6090;
+  --pg-mono: 'DM Mono', monospace; --pg-display: 'Syne', sans-serif;
 }
-.app-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 32px;
-  background: #04010a;
-  border-bottom: 1px solid #1e0840;
-  position: sticky; top: 0; z-index: 100;
-  backdrop-filter: blur(12px);
-}
-.app-nav-logo {
-  font-family: var(--pg-mono); font-size: 0.95rem; font-weight: 500;
-  color: #a855f7; letter-spacing: 3px; text-transform: uppercase;
-  text-decoration: none;
-}
+.app-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: #04010a; border-bottom: 1px solid #1e0840; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
+.app-nav-logo { font-family: var(--pg-mono); font-size: 0.95rem; font-weight: 500; color: #a855f7; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; }
 .app-nav-logo span { color: #e040fb; }
 .app-nav-links { display: flex; gap: 4px; align-items: center; }
-.app-nav-links a {
-  font-family: var(--pg-mono); font-size: 0.75rem;
-  color: #7a6090; text-decoration: none; letter-spacing: 1px;
-  text-transform: uppercase; padding: 7px 14px; border-radius: 5px;
-  transition: all 0.2s;
-}
+.app-nav-links a { font-family: var(--pg-mono); font-size: 0.75rem; color: #7a6090; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; border-radius: 5px; transition: all 0.2s; }
 .app-nav-links a:hover { color: #f0e8ff; background: #1e0840; }
-.app-nav-links a.active {
-  color: #a855f7; background: rgba(124,32,232,0.12);
-  border: 1px solid rgba(124,32,232,0.25);
-}
-.app-nav-home {
-  font-family: var(--pg-mono); font-size: 0.72rem;
-  color: #7a6090; text-decoration: none; letter-spacing: 1px;
-  text-transform: uppercase; padding: 7px 14px; border-radius: 5px;
-  border: 1px solid #1e0840; transition: all 0.2s;
-}
+.app-nav-links a.active { color: #a855f7; background: rgba(124,32,232,0.12); border: 1px solid rgba(124,32,232,0.25); }
+.app-nav-home { font-family: var(--pg-mono); font-size: 0.72rem; color: #7a6090; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; border-radius: 5px; border: 1px solid #1e0840; transition: all 0.2s; }
 .app-nav-home:hover { color: #a855f7; border-color: #7c20e8; }
-.app-footer {
-  border-top: 1px solid #1e0840; padding: 24px 32px;
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 12px; margin-top: 40px;
-}
-.app-footer-logo {
-  font-family: var(--pg-mono); font-size: 0.85rem;
-  color: #a855f7; letter-spacing: 2px; text-transform: uppercase;
-}
+.app-footer { border-top: 1px solid #1e0840; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
+.app-footer-logo { font-family: var(--pg-mono); font-size: 0.85rem; color: #a855f7; letter-spacing: 2px; text-transform: uppercase; }
 .app-footer-links { display: flex; gap: 20px; }
-.app-footer-links a {
-  font-family: var(--pg-mono); font-size: 0.72rem; color: #7a6090;
-  text-decoration: none; letter-spacing: 1px; text-transform: uppercase;
-  transition: color 0.2s;
-}
+.app-footer-links a { font-family: var(--pg-mono); font-size: 0.72rem; color: #7a6090; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s; }
 .app-footer-links a:hover { color: #f0e8ff; }
-.app-footer-copy {
-  font-family: var(--pg-mono); font-size: 0.7rem; color: #3a2860;
-}
+.app-footer-copy { font-family: var(--pg-mono); font-size: 0.7rem; color: #3a2860; }
+.account-entry { background: #150024; border: 1px solid purple; border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+.ae-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.ae-name { font-weight: bold; font-size: 1.05em; color: #e0c8ff; }
+.ae-firm { color: #9a6abf; font-size: 0.85em; }
+.ae-phase { font-size: 0.75em; padding: 3px 10px; border-radius: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.phase-funded { background: rgba(100,255,150,0.15); color: #66ffaa; border: 1px solid #66ffaa; }
+.phase-challenge { background: rgba(200,150,255,0.15); color: #cc99ff; border: 1px solid #cc99ff; }
+.ae-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.ae-label { display: block; font-size: 0.75em; color: #9a6abf; margin-bottom: 2px; }
+.ae-val { font-size: 1em; color: #ff9cff; font-weight: bold; }
+.ae-actions { display: flex; gap: 10px; }
+.ae-actions button { flex: 1; padding: 8px; font-size: 0.85em; }
 @media (max-width: 700px) {
   .app-nav { padding: 14px 16px; }
   .app-nav-links a { padding: 6px 8px; font-size: 0.68rem; }
   .app-footer { padding: 20px 16px; flex-direction: column; align-items: flex-start; }
 }
 </style>
-
-<style>
-.nav-user-menu {
-  display: flex; align-items: center; gap: 12px; margin-left: auto;
-}
-.nav-user-email {
-  font-family: 'DM Mono', monospace; font-size: 0.72rem;
-  color: #7a6090; letter-spacing: 0.5px;
-  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.nav-signout-btn {
-  font-family: 'DM Mono', monospace; font-size: 0.72rem;
-  color: #7a6090; background: none;
-  border: 1px solid #1e0840; border-radius: 5px;
-  padding: 5px 12px; cursor: pointer; letter-spacing: 1px;
-  text-transform: uppercase; transition: all 0.2s;
-}
-.nav-signout-btn:hover { color: #ff4466; border-color: #ff4466; }
-</style>
 </head>
 <body>
-<!-- Supabase Auth Guard -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const _sb = supabase.createClient(
-    'https://enszttdunhtchyufkwbe.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
-  );
-  window._sb = _sb;
-
-  _sb.auth.getSession().then(({ data }) => {
-    if (!data.session) {
-      window.location.href = 'auth.html';
-    } else {
-      const el = document.getElementById('nav-user-email');
-      if (el) el.textContent = data.session.user.email;
-    }
-  });
-
-  async function signOut() {
-    await _sb.auth.signOut();
-    window.location.href = 'auth.html';
-  }
-</script>
-
 
 <nav class="app-nav">
   <a href="index.html" class="app-nav-logo">PropRisk <span>Sage</span></a>
   <div class="app-nav-links">
     <a href="dashboard.html">Dashboard</a>
     <a href="accounts.html" class="active">Accounts</a>
-    <a href="trades.html" class="">Trades</a>
-    <a href="analytics.html" class="">Analytics</a>
-    <a href="compare.html" class="">Compare Props</a>
+    <a href="trades.html">Trades</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="compare.html">Compare Props</a>
   </div>
   <a href="index.html" class="app-nav-home">← Home</a>
-  <div class="nav-user-menu">
-    <span class="nav-user-email" id="nav-user-email"></span>
-    <button class="nav-signout-btn" onclick="signOut()">Sign Out</button>
-  </div>
 </nav>
 
 <main>
-
-  <!-- Add New Account -->
   <section class="card">
     <h2>Add New Account</h2>
     <form id="addAccountForm">
       <label for="accountName">Account Name</label>
       <input type="text" id="accountName" placeholder="e.g. Apex Challenge #1" required>
-
       <label for="firm">Prop Firm</label>
       <select id="firm">
         <option value="">Select firm...</option>
-        <option value="apex">Apex Trader Funding</option>
-        <option value="topstep">Topstep</option>
-        <option value="ftmo">FTMO</option>
-        <option value="mff">MyFundedFutures</option>
-        <option value="other">Other</option>
+        <option value="Apex">Apex Trader Funding</option>
+        <option value="Topstep">Topstep</option>
+        <option value="FTMO">FTMO</option>
+        <option value="MyFundedFutures">MyFundedFutures</option>
+        <option value="Other">Other</option>
       </select>
-
       <label for="accountSize">Account Size ($)</label>
       <input type="number" id="accountSize" min="1000" step="500" required>
-
       <label for="dailyDD">Daily Drawdown (%)</label>
       <input type="number" id="dailyDD" min="1" max="10" step="0.1" required>
-
       <label for="maxDD">Max Trailing Drawdown (%)</label>
       <input type="number" id="maxDD" min="5" max="20" step="0.1" required>
-
       <label for="profitTarget">Profit Target ($)</label>
       <input type="number" id="profitTarget" min="100" step="100" required>
-
       <label for="phase">Phase</label>
       <select id="phase">
         <option value="challenge">Challenge / Evaluation</option>
         <option value="funded">Funded</option>
       </select>
-
       <button type="submit">Save Account</button>
       <div class="error" id="formError"></div>
     </form>
   </section>
 
-  <!-- Saved Accounts -->
   <section class="card" style="grid-column: 1 / -1;">
     <h2>Saved Accounts</h2>
-    <div id="accountsWrap">
-      <div class="empty-msg" id="emptyMsg">No accounts saved yet. Add one using the form.</div>
-      <div id="accountsList"></div>
-    </div>
+    <div class="empty-msg" id="emptyMsg">No accounts saved yet. Add one using the form.</div>
+    <div id="accountsList"></div>
   </section>
-
 </main>
 
 <footer class="app-footer">
@@ -199,30 +107,22 @@
   <div class="app-footer-links">
     <a href="index.html">Home</a>
     <a href="dashboard.html">Dashboard</a>
-    <a href="settings.html">Settings</a>
     <a href="compare.html">Compare</a>
   </div>
-  <div class="app-footer-copy">© 2025 PropRisk Sage. Built for funded traders.</div>
+  <div class="app-footer-copy">© 2026 PropRisk Sage. Built for funded traders.</div>
 </footer>
 
 <script>
   let accounts = JSON.parse(localStorage.getItem('allAccounts')) || [];
 
-  function saveAccounts() {
-    localStorage.setItem('allAccounts', JSON.stringify(accounts));
-  }
+  function saveAccounts() { localStorage.setItem('allAccounts', JSON.stringify(accounts)); }
 
   function renderAccounts() {
-    const list     = document.getElementById('accountsList');
+    const list = document.getElementById('accountsList');
     const emptyMsg = document.getElementById('emptyMsg');
     list.innerHTML = '';
-
-    if (accounts.length === 0) {
-      emptyMsg.style.display = 'block';
-      return;
-    }
+    if (accounts.length === 0) { emptyMsg.style.display = 'block'; return; }
     emptyMsg.style.display = 'none';
-
     accounts.forEach((a, i) => {
       const card = document.createElement('div');
       card.className = 'account-entry';
@@ -241,20 +141,18 @@
         <div class="ae-actions">
           <button onclick="loadToDashboard(${i})">Load to Dashboard</button>
           <button class="btn-delete" onclick="deleteAccount(${i})">Delete</button>
-        </div>
-      `;
+        </div>`;
       list.appendChild(card);
     });
   }
 
   function loadToDashboard(i) {
     const a = accounts[i];
-    const account = {
+    localStorage.setItem('account', JSON.stringify({
       name: a.name, size: a.size, dailyDD: a.dailyDD,
       maxTrailingDD: a.maxDD, profitTarget: a.profitTarget,
       balance: a.size, highWaterMark: a.size, todayLoss: 0
-    };
-    localStorage.setItem('account', JSON.stringify(account));
+    }));
     localStorage.setItem('trades', JSON.stringify([]));
     localStorage.setItem('equityData', JSON.stringify([a.size]));
     window.location.href = 'dashboard.html';
@@ -269,16 +167,15 @@
 
   document.getElementById('addAccountForm').addEventListener('submit', e => {
     e.preventDefault();
-    const account = {
-      name:         document.getElementById('accountName').value,
-      firm:         document.getElementById('firm').value,
-      size:         parseFloat(document.getElementById('accountSize').value),
-      dailyDD:      parseFloat(document.getElementById('dailyDD').value),
-      maxDD:        parseFloat(document.getElementById('maxDD').value),
+    accounts.push({
+      name: document.getElementById('accountName').value,
+      firm: document.getElementById('firm').value,
+      size: parseFloat(document.getElementById('accountSize').value),
+      dailyDD: parseFloat(document.getElementById('dailyDD').value),
+      maxDD: parseFloat(document.getElementById('maxDD').value),
       profitTarget: parseFloat(document.getElementById('profitTarget').value),
-      phase:        document.getElementById('phase').value
-    };
-    accounts.push(account);
+      phase: document.getElementById('phase').value
+    });
     saveAccounts();
     renderAccounts();
     e.target.reset();
@@ -286,27 +183,5 @@
 
   renderAccounts();
 </script>
-
-<style>
-  .account-entry {
-    background: #150024; border: 1px solid purple;
-    border-radius: 10px; padding: 18px 20px; margin-bottom: 14px;
-  }
-  .ae-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-  .ae-name { font-weight: bold; font-size: 1.05em; color: #e0c8ff; }
-  .ae-firm { color: #9a6abf; font-size: 0.85em; }
-  .ae-phase {
-    font-size: 0.75em; padding: 3px 10px; border-radius: 20px;
-    font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
-  }
-  .phase-funded    { background: rgba(100,255,150,0.15); color: #66ffaa; border: 1px solid #66ffaa; }
-  .phase-challenge { background: rgba(200,150,255,0.15); color: #cc99ff; border: 1px solid #cc99ff; }
-  .ae-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 14px; }
-  .ae-label { display: block; font-size: 0.75em; color: #9a6abf; margin-bottom: 2px; }
-  .ae-val   { font-size: 1em; color: #ff9cff; font-weight: bold; }
-  .ae-actions { display: flex; gap: 10px; }
-  .ae-actions button { flex: 1; padding: 8px; font-size: 0.85em; }
-</style>
-
 </body>
 </html>
