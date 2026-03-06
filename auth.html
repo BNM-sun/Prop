@@ -364,128 +364,60 @@
 
 <footer>© 2025 PropRisk Sage. Built for funded traders.</footer>
 
-<!-- Supabase -->
+<!-- Supabase Auth Guard — FIXED -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const { createClient } = supabase;
-  const sb = createClient(
+(async () => {
+  const _sb = supabase.createClient(
     'https://enszttdunhtchyufkwbe.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
   );
-
-  // ── If already logged in, go to dashboard ─────────────────────────────
-  sb.auth.getSession().then(({ data }) => {
-    if (data.session) window.location.href = 'dashboard.html';
-  });
-
-  // ── Handle OAuth redirect ─────────────────────────────────────────────
-  sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      window.location.href = 'dashboard.html';
+  window._sb = _sb;
+  const hash = window.location.hash;
+  const isOAuthRedirect = hash && (hash.includes('access_token') || hash.includes('refresh_token'));
+  if (isOAuthRedirect) {
+    _sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        history.replaceState(null, '', window.location.pathname);
+        const el = document.getElementById('nav-user-email');
+        if (el) el.textContent = session.user.email;
+      }
+      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
+    });
+  } else {
+    const { data } = await _sb.auth.getSession();
+    if (data.session) {
+      const el = document.getElementById('nav-user-email');
+      if (el) el.textContent = data.session.user.email;
+    } else {
+      let resolved = false;
+      const { data: { subscription } } = _sb.auth.onAuthStateChange((event, session) => {
+        if (resolved) return;
+        if (event === 'SIGNED_IN' && session) {
+          resolved = true;
+          const el = document.getElementById('nav-user-email');
+          if (el) el.textContent = session.user.email;
+          subscription.unsubscribe();
+        }
+        if (event === 'SIGNED_OUT') {
+          resolved = true;
+          window.location.href = 'auth.html';
+          subscription.unsubscribe();
+        }
+      });
+      setTimeout(() => {
+        if (!resolved) { resolved = true; window.location.href = 'auth.html'; }
+      }, 1500);
     }
-  });
-
-  // ── Tab switching ─────────────────────────────────────────────────────
-  function switchTab(tab) {
-    document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('panel-' + tab).classList.add('active');
-    if (tab === 'login')  document.querySelectorAll('.auth-tab')[0].classList.add('active');
-    if (tab === 'signup') document.querySelectorAll('.auth-tab')[1].classList.add('active');
-    clearMsgs();
-  }
-
-  function clearMsgs() {
-    document.querySelectorAll('.msg').forEach(m => {
-      m.classList.remove('show', 'error', 'success', 'info');
-      m.textContent = '';
+    _sb.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
     });
   }
-
-  function showMsg(id, text, type) {
-    const el = document.getElementById(id);
-    el.textContent = text;
-    el.className = `msg show ${type}`;
-  }
-
-  function setLoading(btnId, loading) {
-    const btn = document.getElementById(btnId);
-    btn.disabled = loading;
-    btn.textContent = loading ? 'Please wait...' : btn.dataset.label || btn.textContent;
-  }
-
-  // ── Password toggle ───────────────────────────────────────────────────
-  function togglePw(inputId, btn) {
-    const input = document.getElementById(inputId);
-    input.type = input.type === 'password' ? 'text' : 'password';
-    btn.textContent = input.type === 'password' ? '👁' : '🙈';
-  }
-
-  // ── Sign Up ───────────────────────────────────────────────────────────
-  async function handleSignup() {
-    const email    = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
-    const confirm  = document.getElementById('signup-confirm').value;
-
-    if (!email || !password) return showMsg('signup-msg', 'Please fill in all fields.', 'error');
-    if (password.length < 8)  return showMsg('signup-msg', 'Password must be at least 8 characters.', 'error');
-    if (password !== confirm)  return showMsg('signup-msg', 'Passwords do not match.', 'error');
-
-    setLoading('signup-btn', true);
-    const { error } = await sb.auth.signUp({ email, password });
-    setLoading('signup-btn', false);
-
-    if (error) return showMsg('signup-msg', error.message, 'error');
-    showMsg('signup-msg', '✓ Account created! Check your email to confirm your account, then sign in.', 'success');
-  }
-
-  // ── Login ─────────────────────────────────────────────────────────────
-  async function handleLogin() {
-    const email    = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-
-    if (!email || !password) return showMsg('login-msg', 'Please enter your email and password.', 'error');
-
-    setLoading('login-btn', true);
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    setLoading('login-btn', false);
-
-    if (error) return showMsg('login-msg', error.message, 'error');
-    window.location.href = 'dashboard.html';
-  }
-
-  // ── Google ────────────────────────────────────────────────────────────
-  async function handleGoogle() {
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/dashboard.html' }
-    });
-    if (error) showMsg('login-msg', error.message, 'error');
-  }
-
-  // ── Forgot Password ───────────────────────────────────────────────────
-  async function handleForgot() {
-    const email = document.getElementById('forgot-email').value.trim();
-    if (!email) return showMsg('forgot-msg', 'Please enter your email address.', 'error');
-
-    setLoading('forgot-btn', true);
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/auth.html'
-    });
-    setLoading('forgot-btn', false);
-
-    if (error) return showMsg('forgot-msg', error.message, 'error');
-    showMsg('forgot-msg', '✓ Reset link sent! Check your inbox.', 'success');
-  }
-
-  // ── Enter key support ─────────────────────────────────────────────────
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'Enter') return;
-    const active = document.querySelector('.auth-panel.active').id;
-    if (active === 'panel-login')  handleLogin();
-    if (active === 'panel-signup') handleSignup();
-    if (active === 'panel-forgot') handleForgot();
-  });
+})();
+async function signOut() {
+  await window._sb.auth.signOut();
+  window.location.href = 'auth.html';
+}
 </script>
 
 </body>

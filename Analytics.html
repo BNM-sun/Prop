@@ -102,43 +102,61 @@
 </head>
 <body>
 
-<!-- Supabase Auth Guard -->
+<!-- Supabase Auth Guard — FIXED -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+(async () => {
   const _sb = supabase.createClient(
     'https://enszttdunhtchyufkwbe.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
   );
- const _hash = window.location.hash;
-const _isOAuthRedirect = _hash && (_hash.includes('access_token') || _hash.includes('error_description'));
-
-if (_isOAuthRedirect) {
-  _sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      const emailEl = document.getElementById('nav-user-email');
-      if (emailEl) emailEl.textContent = session.user.email;
-    }
-    if (event === 'SIGNED_OUT') {
-      window.location.href = 'auth.html';
-    }
-  });
-} else {
-  (async () => {
+  window._sb = _sb;
+  const hash = window.location.hash;
+  const isOAuthRedirect = hash && (hash.includes('access_token') || hash.includes('refresh_token'));
+  if (isOAuthRedirect) {
+    _sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        history.replaceState(null, '', window.location.pathname);
+        const el = document.getElementById('nav-user-email');
+        if (el) el.textContent = session.user.email;
+      }
+      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
+    });
+  } else {
     const { data } = await _sb.auth.getSession();
-    if (!data.session) {
-      window.location.href = 'auth.html';
+    if (data.session) {
+      const el = document.getElementById('nav-user-email');
+      if (el) el.textContent = data.session.user.email;
     } else {
-      const emailEl = document.getElementById('nav-user-email');
-      if (emailEl) emailEl.textContent = data.session.user.email;
+      let resolved = false;
+      const { data: { subscription } } = _sb.auth.onAuthStateChange((event, session) => {
+        if (resolved) return;
+        if (event === 'SIGNED_IN' && session) {
+          resolved = true;
+          const el = document.getElementById('nav-user-email');
+          if (el) el.textContent = session.user.email;
+          subscription.unsubscribe();
+        }
+        if (event === 'SIGNED_OUT') {
+          resolved = true;
+          window.location.href = 'auth.html';
+          subscription.unsubscribe();
+        }
+      });
+      setTimeout(() => {
+        if (!resolved) { resolved = true; window.location.href = 'auth.html'; }
+      }, 1500);
     }
-  })();
-
-  _sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-      window.location.href = 'auth.html';
-    }
-  });
+    _sb.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
+    });
+  }
+})();
+async function signOut() {
+  await window._sb.auth.signOut();
+  window.location.href = 'auth.html';
 }
+
 </script>
 
 
