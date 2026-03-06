@@ -102,7 +102,7 @@
 </head>
 <body>
 
-<!-- Supabase Auth Guard — FIXED -->
+<!-- Supabase Auth Guard — FIXED v2 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (async () => {
@@ -111,47 +111,38 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
   );
   window._sb = _sb;
+
   const hash = window.location.hash;
   const isOAuthRedirect = hash && (hash.includes('access_token') || hash.includes('refresh_token'));
+
   if (isOAuthRedirect) {
-    _sb.auth.onAuthStateChange((event, session) => {
+    // Google OAuth redirect — wait for session to be parsed from URL hash
+    const { data: { subscription } } = _sb.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        subscription.unsubscribe();
         history.replaceState(null, '', window.location.pathname);
         const el = document.getElementById('nav-user-email');
         if (el) el.textContent = session.user.email;
       }
-      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
     });
   } else {
+    // Normal page load
     const { data } = await _sb.auth.getSession();
     if (data.session) {
+      // Already logged in — just show the email
       const el = document.getElementById('nav-user-email');
       if (el) el.textContent = data.session.user.email;
-    } else {
-      let resolved = false;
-      const { data: { subscription } } = _sb.auth.onAuthStateChange((event, session) => {
-        if (resolved) return;
-        if (event === 'SIGNED_IN' && session) {
-          resolved = true;
-          const el = document.getElementById('nav-user-email');
-          if (el) el.textContent = session.user.email;
-          subscription.unsubscribe();
-        }
-        if (event === 'SIGNED_OUT') {
-          resolved = true;
-          window.location.href = 'auth.html';
-          subscription.unsubscribe();
-        }
+      // Watch only for sign-out (not sign-in, to avoid reload loops)
+      _sb.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
       });
-      setTimeout(() => {
-        if (!resolved) { resolved = true; window.location.href = 'auth.html'; }
-      }, 1500);
+    } else {
+      // No session — redirect to login
+      window.location.href = 'auth.html';
     }
-    _sb.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
-    });
   }
 })();
+
 async function signOut() {
   await window._sb.auth.signOut();
   window.location.href = 'auth.html';
