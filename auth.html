@@ -363,52 +363,28 @@
 </div>
 
 <footer>© 2025 PropRisk Sage. Built for funded traders.</footer>
-<!-- Supabase Auth Guard — FIXED v2 -->
+<!-- Supabase Auth Guard -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-(async () => {
   const _sb = supabase.createClient(
     'https://enszttdunhtchyufkwbe.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVuc3p0dGR1bmh0Y2h5dWZrd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzQzMTQsImV4cCI6MjA4ODMxMDMxNH0.vKHFW8YJTWwST3v-ZG4FtsP5Dp31DYlQ6kc6-SNzgkU'
   );
   window._sb = _sb;
 
-  const hash = window.location.hash;
-  const isOAuthRedirect = hash && (hash.includes('access_token') || hash.includes('refresh_token'));
-
-  if (isOAuthRedirect) {
-    // Google OAuth redirect — wait for session to be parsed from URL hash
-    const { data: { subscription } } = _sb.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        subscription.unsubscribe();
-        history.replaceState(null, '', window.location.pathname);
-        const el = document.getElementById('nav-user-email');
-        if (el) el.textContent = session.user.email;
-      }
-    });
-  } else {
-    // Normal page load
-    const { data } = await _sb.auth.getSession();
-    if (data.session) {
-      // Already logged in — just show the email
+  _sb.auth.getSession().then(({ data }) => {
+    if (!data.session) {
+      window.location.href = 'auth.html';
+    } else {
       const el = document.getElementById('nav-user-email');
       if (el) el.textContent = data.session.user.email;
-      // Watch only for sign-out (not sign-in, to avoid reload loops)
-      _sb.auth.onAuthStateChange((event) => {
-        if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
-      });
-    } else {
-      // No session — redirect to login
-      window.location.href = 'auth.html';
     }
+  });
+
+  async function signOut() {
+    await _sb.auth.signOut();
+    window.location.href = 'auth.html';
   }
-})();
-
-async function signOut() {
-  await window._sb.auth.signOut();
-  window.location.href = 'auth.html';
-}
-
 </script>
 
 </body>
