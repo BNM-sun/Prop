@@ -18,4 +18,4 @@ A free web tool for prop firm traders to compare firms, track risk, and avoid th
 HTML · CSS · Vanilla JavaScript · Chart.js · Supabase
 
 ## Screenshots
-![Landing page](https://bnm-sun.github.io/Prop/)
+![Landing page](Screenshot.jpg)
