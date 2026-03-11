@@ -4,7 +4,7 @@
 
 A free web tool for prop firm traders to compare firms, track risk, and avoid the hidden rules that kill funded accounts.
 
-🔗 **Live site:** https://silly-starburst-ff0044.netlify.app
+🔗 **Live site:** https://bnm-sun.github.io/Prop/
 
 ## Features
 - Side-by-side comparison of 7 prop firms (Apex, Topstep, FTMO, MFF, TradeDay & more)
@@ -18,4 +18,4 @@ A free web tool for prop firm traders to compare firms, track risk, and avoid th
 HTML · CSS · Vanilla JavaScript · Chart.js · Supabase
 
 ## Screenshots
-![Landing page](https://silly-starburst-ff0044.netlify.app)
+![Landing page](https://bnm-sun.github.io/Prop/)
