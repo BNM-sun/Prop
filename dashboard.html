@@ -7,16 +7,29 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<style>
+.app-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: #04010a; border-bottom: 1px solid #1e0840; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
+.app-nav-logo { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500; color: #a855f7; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; }
+.app-nav-logo span { color: #e040fb; }
+.app-nav-links { display: flex; gap: 4px; align-items: center; }
+.app-nav-links a { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #7a6090; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; border-radius: 5px; transition: all 0.2s; }
+.app-nav-links a:hover { color: #f0e8ff; background: #1e0840; }
+.app-nav-links a.active { color: #a855f7; background: rgba(124,32,232,0.12); border: 1px solid rgba(124,32,232,0.25); }
+.app-nav-home { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #7a6090; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; border-radius: 5px; border: 1px solid #1e0840; transition: all 0.2s; }
+.app-nav-home:hover { color: #a855f7; border-color: #7c20e8; }
+</style>
 
-<header>
-  <h1>Prop Firm Risk Dashboard</h1>
-  <nav>
-    <a href="index.html" class="active">Dashboard</a>
+<nav class="app-nav">
+  <a href="index.html" class="app-nav-logo">PropRisk <span>Sage</span></a>
+  <div class="app-nav-links">
+    <a href="dashboard.html" class="active">Dashboard</a>
     <a href="accounts.html">Accounts</a>
     <a href="trades.html">Trades</a>
     <a href="analytics.html">Analytics</a>
-    <a href="settings.html">Compare</a>
-  </nav>
+    <a href="settings.html">Compare Props</a>
+  </div>
+  <a href="index.html" class="app-nav-home">← Home</a>
+</nav>
 </header>
 
 <!-- BREACH ALERT -->
