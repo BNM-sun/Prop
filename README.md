@@ -7,7 +7,7 @@ A free web tool for prop firm traders to compare firms, track risk, and avoid th
 🔗 **Live site:** https://bnm-sun.github.io/Prop/
 
 ## Features
-- Side-by-side comparison of 7 prop firms (Apex, Topstep, FTMO, MFF, TradeDay & more)
+- Side-by-side comparison of 7+ prop firms (Apex, Topstep, FTMO, MFF, TradeDay & more)
 - Hidden rules database — consistency caps, news bans, scaling plans
 - Payout Junction verification badges
 - Risk calculator — daily loss limit, position sizing, drawdown tracker
